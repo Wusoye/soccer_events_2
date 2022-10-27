@@ -5,6 +5,8 @@ class GamesBasketball {
         this.MongoQuery = require("../models/MongoQuery.class")
         this.moment = require('../config/moment');
         this.Fetch = require('./Fetch.class')
+
+        this.URL_API = 'https://api-basketball.p.rapidapi.com/games'
     
         this.HEADERS_API_BASKETBALL = {
             'X-RapidAPI-Key': 'c5b77243e3mshe9ba9a33f164ba5p149e4bjsn1c1fdd2bc8f0',
@@ -46,12 +48,12 @@ class GamesBasketball {
             const date = { date: this.moment(strDate).format('YYYY-MM-DD') }
             const resFind = await this.MongoQuery.find(this.DATABASE, this.COLLECTION, date)
 
-            const notUpToDate = resFind[0] ? (this.moment(resFind[0].dateAjout) < momentNow && this.moment(date.date) < momentNow) : false
+            const notUpToDate = resFind[0] ? (this.moment(resFind[0].dateAjout) < this.moment(date.date) && this.moment(date.date) < momentNow) : false
 
             if (resFind.length === 0 || notUpToDate) {
                 console.log(notUpToDate);
                 if (notUpToDate) await this.MongoQuery.delete(this.DATABASE, this.COLLECTION, date)
-                let games = await this.Fetch.get('GET', 'https://api-basketball.p.rapidapi.com/games', date, this.HEADERS_API_BASKETBALL)
+                let games = await this.Fetch.get('GET', this.URL_API, date, this.HEADERS_API_BASKETBALL)
                 const parameters = games.data.parameters.date
                 const response = games.data.response
                 const data = { date: parameters, dateAjout: this.moment().format('YYYY-MM-DD'), games: response }
@@ -84,11 +86,11 @@ class GamesBasketball {
                 let date = { date: this.moment(start).format('YYYY-MM-DD') }
                 let resFind = await this.MongoQuery.find(this.DATABASE, this.COLLECTION, date)
 
-                let notUpToDate = resFind[0] ? (this.moment(resFind[0].dateAjout) < momentNow && this.moment(date.date) < momentNow) : false
+                let notUpToDate = resFind[0] ? (this.moment(resFind[0].dateAjout) < this.moment(date.date) && this.moment(date.date) < momentNow) : false
 
                 if (resFind.length === 0 || notUpToDate) {
                     if (notUpToDate) await this.MongoQuery.delete(this.DATABASE, this.COLLECTION, date)
-                    let games = await this.Fetch.get('GET', 'https://api-basketball.p.rapidapi.com/games', date, this.HEADERS_API_BASKETBALL)
+                    let games = await this.Fetch.get('GET', this.URL_API, date, this.HEADERS_API_BASKETBALL)
                     let parameters = games.data.parameters.date
                     let response = games.data.response
                     let data = { date: parameters, dateAjout: this.moment().format('YYYY-MM-DD'), games: response }
@@ -161,6 +163,55 @@ class GamesBasketball {
         }
     }
 
+    sortByCountry(games) {
+        function compareCountry(a, b) {
+            if (a['country']['id'] < b['country']['id']) {
+                return -1;
+            }
+            if (a['country']['id'] < b['country']['id']) {
+                return 1;
+            }
+            // a must be equal to b
+            return 0;
+        }
+
+        let gamesSortCountry = games['games'] ? games['games'].sort(compareCountry) : games[0]['games'].sort(compareCountry)
+    
+        let country = []
+        let countryTmp = []
+        let tmpCountryId = null
+    
+        gamesSortCountry.forEach(game => {
+            if (game['country']['id'] === tmpCountryId || tmpCountryId === null) {
+                countryTmp.push(game)
+            } else {
+                country.push(countryTmp)
+                countryTmp = []
+                countryTmp.push(game)
+            }
+            tmpCountryId = game['country']['id']
+        })
+
+        return country
+    }
+
+    getScoresAverage(games, dateGame, idTeam) {
+        let scoresAvgHome = []
+
+        games.forEach(game => {
+            if (moment(game['date']).isBefore(dateGame)) {
+                if (game['teams']['home']['id'] === idTeam) {
+                    let scoreAvg = game['scores']['home']['total'] / game['scores']['away']['total']
+                    scoresAvgHome.push({date: moment(game['date']), scoreAvg: scoreAvg})
+                } else if (game['teams']['away']['id'] === idTeam) {
+                    let scoreAvg = game['scores']['away']['total'] / game['scores']['home']['total']
+                    scoresAvgHome.push({date: moment(game['date']), scoreAvg: scoreAvg})
+                }
+            }
+        })
+
+        return scoresAvgHome
+    }
 
 }
 

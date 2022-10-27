@@ -18,6 +18,8 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 app.set('view engine', 'ejs');
 app.locals.moment = require('./src/config/moment');
 
+app.use('/js', express.static('./views/js'))
+
 app.listen(8080);
 
 app.get('/', async (req, res) => {
@@ -49,6 +51,36 @@ app.get('/api/basketball/games-by-team/:idTeam', async (req, res) => {
     res.send(games)
 })
 
+/** EJS */
 
+app.get('/index', async (req, res) => {
+    res.render('index.ejs')
+})
+
+app.get('/basketball/games-by-date/:strDate?', async (req, res) => {
+    let { strDate } = req.params
+    if (strDate === undefined) strDate = moment().format('YYYY-MM-DD')
+    let games = await gamesBasketball.getByDate(strDate)
+    games = gamesBasketball.sortByCountry(games)
+    res.render('basketball.games-by-date.ejs', {games})
+})
+
+app.get('/basketball/games-by-id/:idGame', async (req, res) => {
+    let { idGame } = req.params
+    const game = await gamesBasketball.getByGame(parseInt(idGame))
+
+
+    const homeId = game['teams']['home']['id']
+    const awayId = game['teams']['away']['id']
+    const dateGame = moment(game['date'])
+    const homeGames = await gamesBasketball.getByTeam(game['teams']['home']['id'])
+    const awayGames = await gamesBasketball.getByTeam(game['teams']['away']['id'])
+    const scoresAvgHome = gamesBasketball.getScoresAverage(homeGames, dateGame, homeId)
+    const scoresAvgAway = gamesBasketball.getScoresAverage(awayGames, dateGame, awayId)
+
+    console.log(scoresAvgHome);
+
+    console.log(game);
+})
 
 console.log('server run')
