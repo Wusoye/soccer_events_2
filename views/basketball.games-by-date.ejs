@@ -32,8 +32,8 @@
                 <td><%= game['league']['name'] %></td>
                 <td><%= game['teams']['home']['name'] %> - <%= game['teams']['away']['name'] %></td>
                 <td><%= game['status']['short'] %></td>
-                <td><% if (game['status']['short'] === 'FT') { %><%= game['scores']['home']['total'] %> - <%= game['scores']['away']['total'] %><% } %></td>
-                <td><a class="text-decoration-none fw-bold" href="/basketball/games-by-id/<%- game['id'] -%>">+</a></td>
+                <td><% if (game['status']['short'] === 'FT' || game['status']['short'] === 'AOT') { %><%= game['scores']['home']['total'] %> - <%= game['scores']['away']['total'] %><% } %></td>
+                <td><a class="text-decoration-none fw-bold" href="/basketball/games-by-id/<%- game['id'] -%>" target="_blank">+</a></td>
             </tr>
 
             <%

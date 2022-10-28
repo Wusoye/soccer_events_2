@@ -9,6 +9,7 @@ let fs = require("fs");
 /** SERVICES */
 let { Fetch } = require('./src/services/Fetch.class')
 let gamesBasketball = require('./src/services/GamesBasketball.class')
+let ToolsAverage = require('./src/services/ToolsAverage.class')
 
 app.use(bodyParser.json());       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
@@ -51,6 +52,19 @@ app.get('/api/basketball/games-by-team/:idTeam', async (req, res) => {
     res.send(games)
 })
 
+app.get('/api/basketball/ema-by-team/:idTeam/:dateGame', async (req, res) => {
+    const { idTeam, dateGame } = req.params
+    const Games = await gamesBasketball.getByTeam(parseInt(idTeam))
+    const scoresDif = gamesBasketball.getScoresDifference(Games, moment(dateGame), idTeam)
+    const norm = ToolsAverage.emaMulti(scoresDif)
+    const ema2 = ToolsAverage.emaMulti(scoresDif, 3)
+    const ema4 = ToolsAverage.emaMulti(scoresDif, 6)
+    const ema6 = ToolsAverage.emaMulti(scoresDif, 9)
+
+    const emaTeam = {ema: [{ema2}, {ema4}, {ema6}, {norm}]}
+    res.send(emaTeam)
+})
+
 /** EJS */
 
 app.get('/index', async (req, res) => {
@@ -68,19 +82,7 @@ app.get('/basketball/games-by-date/:strDate?', async (req, res) => {
 app.get('/basketball/games-by-id/:idGame', async (req, res) => {
     let { idGame } = req.params
     const game = await gamesBasketball.getByGame(parseInt(idGame))
-
-
-    const homeId = game['teams']['home']['id']
-    const awayId = game['teams']['away']['id']
-    const dateGame = moment(game['date'])
-    const homeGames = await gamesBasketball.getByTeam(game['teams']['home']['id'])
-    const awayGames = await gamesBasketball.getByTeam(game['teams']['away']['id'])
-    const scoresAvgHome = gamesBasketball.getScoresAverage(homeGames, dateGame, homeId)
-    const scoresAvgAway = gamesBasketball.getScoresAverage(awayGames, dateGame, awayId)
-
-    console.log(scoresAvgHome);
-
-    console.log(game);
+    res.render('basketball.games-by-id.ejs', {game})
 })
 
 console.log('server run')
