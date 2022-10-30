@@ -1,0 +1,53 @@
+<%- include('includes/header') -%>
+<main class="container mt-3">
+
+    <% 
+
+        games.forEach(leagueGames => {
+
+    %>
+
+    <h1 class="display-4 mt-3"><%= leagueGames['league'] %></h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col" style="width: 15%">Start</th>
+                <th scope="col" style="width: 30%">Teams</th>
+                <th scope="col" style="width: 7%">Status</th>
+                <th scope="col" style="width: 7%">Scores</th>
+                <th scope="col" style="width: 7%"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <%
+
+            leagueGames['games'].forEach(game => {
+            
+            %>
+
+            <tr>
+                <th scope="row"><%= moment(game['date']).format('YYYY-MM-DD') %></th>
+                <td><%= game['team1'] %> - <%= game['team2'] %></td>
+                <td><%= game['score1'] >= 0 ? 'FT' : 'NS' %></td>
+                <td><%= game['score1'] >= 0 ? game['score1'] : '' %> - <%= game['score2'] >= 0 ? game['score2'] : '' %></td>
+                <td><a class="text-decoration-none fw-bold" href="/club-soccer/games-by-id/<%- game['_id'] -%>" target="_blank">+</a></td>
+            </tr>
+
+            <%
+            
+                });
+            
+            %>
+        </tbody>
+    </table>
+
+
+    <%
+            
+        });
+        
+    %> 
+
+</main>
+<%- include('includes/footer') -%>

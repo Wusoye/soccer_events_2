@@ -9,6 +9,7 @@ let fs = require("fs");
 /** SERVICES */
 let { Fetch } = require('./src/services/Fetch.class')
 let gamesBasketball = require('./src/services/GamesBasketball.class')
+let clubSoccer = require('./src/services/ClubSoccer.class')
 let ToolsAverage = require('./src/services/ToolsAverage.class')
 
 app.use(bodyParser.json());       // to support JSON-encoded bodies
@@ -26,6 +27,9 @@ app.listen(8080);
 app.get('/', async (req, res) => {
     res.send({msg: 'coucou'})
 })
+
+
+/** api-basketball.p.rapidapi */
 
 app.get('/api/basketball/games-by-date/:strDate', async (req, res) => {
     const { strDate } = req.params
@@ -85,6 +89,67 @@ app.get('/basketball/games-by-id/:idGame', async (req, res) => {
     let { idGame } = req.params
     const game = await gamesBasketball.getByGame(parseInt(idGame))
     res.render('basketball.games-by-id.ejs', {game})
+})
+
+
+/** clubSoccerPredicitions fivethirtyeight */
+
+app.get('/api/club-soccer/games-by-date/:strDate?', async (req, res) => {
+    let { strDate } = req.params
+    if (strDate === undefined) strDate = moment().format('YYYY-MM-DD')
+    let games = await clubSoccer.getByDate(strDate)
+    res.send(games)
+})
+
+app.get('/api/club-soccer/games-by-id/:idGame', async (req, res) => {
+    let { idGame } = req.params 
+    let game = await clubSoccer.getById(idGame)
+    res.send(game)
+})
+
+app.get('/api/club-soccer/games-by-team/:nameTeam', async (req, res) => {
+    let { nameTeam } = req.params
+    let games = await clubSoccer.getByTeam(nameTeam)
+    res.send(games)
+})
+
+app.get('/api/club-soccer/expected-goal-by-team/:nameTeam', async (req, res) => {
+    let { nameTeam } = req.params
+    let expectedGoal = await clubSoccer.getExpGoaByTeam(nameTeam)
+    res.send(expectedGoal)
+})
+
+app.get('/api/club-soccer/ema-expected-goal-by-team/:nameTeam/:periode', async (req, res) => {
+    let { nameTeam, periode } = req.params
+    let expectedGoal = await clubSoccer.getExpGoaByTeam(nameTeam)
+
+    let expectedGoalEma = []
+    expectedGoal.forEach((element, index) => {
+        const our_ema = ToolsAverage.emaObj(expectedGoal.slice(0, index), parseInt(periode), 'our_exp_goa')
+        const opponent_ema = ToolsAverage.emaObj(expectedGoal.slice(0, index), parseInt(periode), 'opponent_exp_goa')
+        expectedGoalEma.push({...element, ema: {our_value: parseFloat(our_ema), opponent_value: parseFloat(opponent_ema), periode: parseInt(periode)}})
+    });
+    
+    res.send(expectedGoalEma)
+})
+
+
+/** EJS */
+
+
+app.get('/club-soccer/games-by-date/:strDate?', async (req, res) => {
+    let { strDate } = req.params
+    if (strDate === undefined) strDate = moment().format('YYYY-MM-DD')
+    let games = await clubSoccer.getByDate(strDate)
+    //console.log(games);
+    res.render('club-soccer.games-by-date.ejs', {games})
+})
+
+app.get('/club-soccer/games-by-id/:idGame', async (req, res) => {
+    let { idGame } = req.params 
+    let game = await clubSoccer.getById(idGame)
+    console.log(game);
+    res.render('club-soccer.games-by-id.ejs', {game})
 })
 
 console.log('server run')

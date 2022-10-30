@@ -1,0 +1,86 @@
+<%- include('includes/header') -%>
+
+<script src="/js/club-soccer.js" type="text/javascript" defer></script>
+
+<main class="container mt-3">
+
+    <div class="row">
+        <div class="col text-start">
+            <h3 class=""><%= game['league'] %></h3>
+        </div>
+        <div class="col text-end">
+            <h5><%= moment(game['date']).format('YYYY-MM-DD') %></h5>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-6 text-end">
+            <h1 class="display-6 mt-3"><%= game['team1'] %></h1>
+        </div>
+        <div class="col-6 text-start">
+            <h1 class="display-6 mt-3"><%= game['team2'] %></h1>
+        </div>
+    </div>
+
+
+    <% if (game['score1'] >= 0 && game['score2'] >= 0) { %> 
+
+
+        <div class="row">
+
+            <div class="col text-center">
+                <h4>
+                    <small class="text-muted"><%= game['score1'] %> - <%= game['score2'] %>  (<%= game['score1'] + game['score2'] %>)</small>
+                </h4>
+            </div>
+
+        </div>
+
+
+    <% } %>
+
+
+    <div class="row mt-4"  style="min-height: 300px;">
+
+        <div class="col-6">
+            <svg id="graphHome" data="<%= game['_id'] %>;<%= game['team1'] %>" width="100%" height="100%"></svg>
+        </div>
+
+        <div class="col-6">
+            <svg id="graphAway" data="<%= game['_id'] %>;<%= game['team2'] %>" width="100%" height="100%"></svg>
+        </div>
+
+    </div>
+
+    <div class="row mt-4">
+
+
+        <div class="col-6" id="tableHome">
+
+        </div>
+        <div class="col-6" id="tableAway">
+            
+        </div>
+
+
+    </div>
+
+
+
+    <div class="row mt-4">
+
+
+        <div class="col-6" id="tableHomeOpponent">
+
+        </div>
+        <div class="col-6" id="tableAwayOpponent">
+            
+        </div>
+
+
+    </div>
+
+
+</main>
+
+<%- include('includes/footer') -%>

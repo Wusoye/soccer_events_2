@@ -184,8 +184,8 @@ class GamesBasketball {
         for (const game of gamesSortDate) {
             if (this.moment(game['date']).isBefore(dateGame) && cptGame < MAX_GAME) {
                 if (game['teams']['home']['id'] !== parseInt(idTeam) && (game['status']['short'] === 'FT' || game['status']['short'] === 'AOT')) {
-                    let gamesOpponent = await this.getByTeam(game['teams']['home']['id'])
                     let win = game['scores']['home']['total'] < game['scores']['away']['total']
+                    let gamesOpponent = await this.getByTeam(game['teams']['home']['id'])
                     let scoresDif = gamesBasketball.getScoresDifference(gamesOpponent, this.moment(game['date']), game['teams']['home']['id'])
                     let norm = this.ToolsAverage.emaMulti(scoresDif)
                     let ema2 = this.ToolsAverage.emaMulti(scoresDif, 5)
@@ -194,11 +194,11 @@ class GamesBasketball {
                 
                     let emaTeam = {ema: [{ema2}, {ema4}, {ema6}, {norm}]}
                     gameToReturn.push({...game, statistics: {win, emaTeam}})
-                    //console.log(game);
+                    //gameToReturn.push({...game, statistics: {win}})
                     cptGame++
                 } else if (game['teams']['away']['id'] !== parseInt(idTeam) && (game['status']['short'] === 'FT' || game['status']['short'] === 'AOT')) {
-                    let gamesOpponent = await this.getByTeam(game['teams']['away']['id'])
                     let win = game['scores']['home']['total'] > game['scores']['away']['total']
+                    let gamesOpponent = await this.getByTeam(game['teams']['away']['id'])
                     let scoresDif = gamesBasketball.getScoresDifference(gamesOpponent, this.moment(game['date']), game['teams']['away']['id'])
                     let norm = this.ToolsAverage.emaMulti(scoresDif)
                     let ema2 = this.ToolsAverage.emaMulti(scoresDif, 5)
@@ -207,6 +207,7 @@ class GamesBasketball {
                 
                     let emaTeam = {ema: [{ema2}, {ema4}, {ema6}, {norm}]}
                     gameToReturn.push({...game, statistics: {win, emaTeam}})
+                    //gameToReturn.push({...game, statistics: {win}})
                     cptGame++
                 }
             }

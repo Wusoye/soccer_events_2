@@ -48,6 +48,26 @@ class ToolsAverage {
         }
     }
 
+    static emaObj(tab, periode, key) {
+        
+        try {
+            if (tab.length <= periode) throw new Error('Periode trop grande par rapport aux données disponobles')
+            let tabEma = [...tab]
+            let goodKey = key
+            let valueForEMA = tabEma.pop()
+            let tabForSM = tabEma.slice(-periode)
+            const sum = tabForSM.reduce((accumulator, value) => {
+                return accumulator + value[goodKey];
+            }, 0);
+            let average = sum / tabForSM.length
+            let lambda =  2 / (periode + 1)
+            return (valueForEMA[goodKey] - average) * lambda + average
+            
+        } catch (e) {
+            return e
+        }
+    }
+
     static emaMulti(tab, periode) {
         let tabReturn = []
         if (periode === 0 || periode === null || periode === undefined) {
