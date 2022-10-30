@@ -51,6 +51,7 @@ class ClubSoccer {
                     nameLeague = game['league']
                 } else {
                     leagues.push({id: tmpLeagueId, league: nameLeague, games: leagueTmp})
+                    nameLeague = game['league']
                     leagueTmp = []
                     leagueTmp.push(game)
                 }
@@ -96,11 +97,11 @@ class ClubSoccer {
             let tabExpGoa = []
 
             resFind.forEach(game => {
-                if (game['team1'] === nameTeam && game['xg1']) {
-                    tabExpGoa.push({_id: game['_id'], date: game['date'], our_goals: game['score1'], opponent_goals: game['score2'], our_exp_goa: game['xg1'], opponent_exp_goa: game['xg2']})
+                if (game['team1'] === nameTeam && game['nsxg1']) {
+                    tabExpGoa.push({_id: game['_id'], date: game['date'], our_goals: game['score1'], opp_goals: game['score2'], opponent_goals: game['score2'], our_exp_goa: game['nsxg1'], opponent_exp_goa: game['nsxg2']})
                 } else 
-                if (game['team2'] === nameTeam && game['xg2']) {
-                    tabExpGoa.push({_id: game['_id'], date: game['date'], our_goals: game['score2'], opponent_goals: game['score1'], our_exp_goa: game['xg2'], opponent_exp_goa: game['xg1']})
+                if (game['team2'] === nameTeam && game['nsxg2']) {
+                    tabExpGoa.push({_id: game['_id'], date: game['date'], our_goals: game['score2'], opp_goals: game['score1'], opponent_goals: game['score1'], our_exp_goa: game['nsxg2'], opponent_exp_goa: game['nsxg1']})
                 }
             })
 

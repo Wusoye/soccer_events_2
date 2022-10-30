@@ -14,7 +14,7 @@ let ToolsAverage = require('./src/services/ToolsAverage.class')
 
 app.use(bodyParser.json());       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
-  extended: true
+    extended: true
 }));
 
 app.set('view engine', 'ejs');
@@ -25,8 +25,18 @@ app.use('/js', express.static('./views/js'))
 app.listen(8080);
 
 app.get('/', async (req, res) => {
-    res.send({msg: 'coucou'})
+    res.send({ msg: 'coucou' })
 })
+
+/** MATH ODDS EVENTS */
+
+app.get('/math-odds-events/games-by-date/:strDate?', async (req, res) => {
+    let { strDate } = req.params
+    if (strDate === undefined) strDate = moment().format('YYYY-MM-DD')
+    const url = 'https://www.oddsmath.com/api/v1/events-by-day.json/?language=en&country_code=FR&timezone=Europe%2FParis&day=' + strDate + '&grouping_mode=0'
+    const response = await Fetch.get('GET', url, {}, {})
+    res.render('math-odds-events.games-by-date.ejs', { items: response.data.data })
+});
 
 
 /** api-basketball.p.rapidapi */
@@ -67,8 +77,8 @@ app.get('/api/basketball/ema-by-team/:idTeam/:dateGame', async (req, res) => {
     const ema4 = ToolsAverage.emaMulti(scoresDif, 15)
     const ema6 = ToolsAverage.emaMulti(scoresDif, 30)
 
-    const emaTeam = {ema: [{ema2}, {ema4}, {ema6}, {norm}]}
-    res.send({emaTeam, statisticsOpponents})
+    const emaTeam = { ema: [{ ema2 }, { ema4 }, { ema6 }, { norm }] }
+    res.send({ emaTeam, statisticsOpponents })
 })
 
 /** EJS */
@@ -82,13 +92,13 @@ app.get('/basketball/games-by-date/:strDate?', async (req, res) => {
     if (strDate === undefined) strDate = moment().format('YYYY-MM-DD')
     let games = await gamesBasketball.getByDate(strDate)
     games = gamesBasketball.sortByCountry(games)
-    res.render('basketball.games-by-date.ejs', {games})
+    res.render('basketball.games-by-date.ejs', { games })
 })
 
 app.get('/basketball/games-by-id/:idGame', async (req, res) => {
     let { idGame } = req.params
     const game = await gamesBasketball.getByGame(parseInt(idGame))
-    res.render('basketball.games-by-id.ejs', {game})
+    res.render('basketball.games-by-id.ejs', { game })
 })
 
 
@@ -102,7 +112,7 @@ app.get('/api/club-soccer/games-by-date/:strDate?', async (req, res) => {
 })
 
 app.get('/api/club-soccer/games-by-id/:idGame', async (req, res) => {
-    let { idGame } = req.params 
+    let { idGame } = req.params
     let game = await clubSoccer.getById(idGame)
     res.send(game)
 })
@@ -125,11 +135,11 @@ app.get('/api/club-soccer/ema-expected-goal-by-team/:nameTeam/:periode', async (
 
     let expectedGoalEma = []
     expectedGoal.forEach((element, index) => {
-        const our_ema = ToolsAverage.emaObj(expectedGoal.slice(0, index), parseInt(periode), 'our_exp_goa')
-        const opponent_ema = ToolsAverage.emaObj(expectedGoal.slice(0, index), parseInt(periode), 'opponent_exp_goa')
-        expectedGoalEma.push({...element, ema: {our_value: parseFloat(our_ema), opponent_value: parseFloat(opponent_ema), periode: parseInt(periode)}})
+        const our_ema = ToolsAverage.emaObj(expectedGoal.slice(0, index + 1), parseInt(periode), 'our_exp_goa')
+        const opponent_ema = ToolsAverage.emaObj(expectedGoal.slice(0, index + 1), parseInt(periode), 'opponent_exp_goa')
+        expectedGoalEma.push({ ...element, ema: { our_value: parseFloat(our_ema), opponent_value: parseFloat(opponent_ema), periode: parseInt(periode) } })
     });
-    
+
     res.send(expectedGoalEma)
 })
 
@@ -142,14 +152,14 @@ app.get('/club-soccer/games-by-date/:strDate?', async (req, res) => {
     if (strDate === undefined) strDate = moment().format('YYYY-MM-DD')
     let games = await clubSoccer.getByDate(strDate)
     //console.log(games);
-    res.render('club-soccer.games-by-date.ejs', {games})
+    res.render('club-soccer.games-by-date.ejs', { games })
 })
 
 app.get('/club-soccer/games-by-id/:idGame', async (req, res) => {
-    let { idGame } = req.params 
+    let { idGame } = req.params
     let game = await clubSoccer.getById(idGame)
     console.log(game);
-    res.render('club-soccer.games-by-id.ejs', {game})
+    res.render('club-soccer.games-by-id.ejs', { game })
 })
 
 console.log('server run')
