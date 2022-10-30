@@ -5,6 +5,7 @@ class GamesBasketball {
         this.MongoQuery = require("../models/MongoQuery.class")
         this.moment = require('../config/moment');
         this.Fetch = require('./Fetch.class')
+        this.ToolsAverage = require('./../services/ToolsAverage.class')
 
         this.URL_API = 'https://api-basketball.p.rapidapi.com/games'
     
@@ -150,7 +151,7 @@ class GamesBasketball {
             } else {
                 resFind.forEach(async res => {
                     res.games.forEach(async game => {
-                        if (game['status']['short'] === 'FT' && game['teams']['home']['id'] === parseInt(idTeam) || game['teams']['away']['id'] === parseInt(idTeam)) {
+                        if ((game['status']['short'] === 'FT' || game['status']['short'] === 'AOT') && (game['teams']['home']['id'] === parseInt(idTeam) || game['teams']['away']['id'] === parseInt(idTeam))) {
                             toReturn.push(game)
                         };
                     });
@@ -161,6 +162,57 @@ class GamesBasketball {
             console.dir(e)
             return { error: e.message }
         }
+    }
+
+    async getStatisticsOpponents(games, dateGame, idTeam) {
+        function compareDate(a, b) {
+            let moment = require('./../config/moment')
+            if (moment(a['date']).isBefore(b['date'])) {
+                return 1;
+            }
+            if (moment(a['date']).isAfter(b['date'])) {
+                return -1;
+            }
+            // a must be equal to b
+            return 0;
+        }
+
+        let gamesSortDate = games.sort(compareDate)
+        const MAX_GAME = 10
+        let cptGame = 0
+        let gameToReturn = []
+        for (const game of gamesSortDate) {
+            if (this.moment(game['date']).isBefore(dateGame) && cptGame < MAX_GAME) {
+                if (game['teams']['home']['id'] !== parseInt(idTeam) && (game['status']['short'] === 'FT' || game['status']['short'] === 'AOT')) {
+                    let gamesOpponent = await this.getByTeam(game['teams']['home']['id'])
+                    let win = game['scores']['home']['total'] < game['scores']['away']['total']
+                    let scoresDif = gamesBasketball.getScoresDifference(gamesOpponent, this.moment(game['date']), game['teams']['home']['id'])
+                    let norm = this.ToolsAverage.emaMulti(scoresDif)
+                    let ema2 = this.ToolsAverage.emaMulti(scoresDif, 5)
+                    let ema4 = this.ToolsAverage.emaMulti(scoresDif, 15)
+                    let ema6 = this.ToolsAverage.emaMulti(scoresDif, 30)
+                
+                    let emaTeam = {ema: [{ema2}, {ema4}, {ema6}, {norm}]}
+                    gameToReturn.push({...game, statistics: {win, emaTeam}})
+                    //console.log(game);
+                    cptGame++
+                } else if (game['teams']['away']['id'] !== parseInt(idTeam) && (game['status']['short'] === 'FT' || game['status']['short'] === 'AOT')) {
+                    let gamesOpponent = await this.getByTeam(game['teams']['away']['id'])
+                    let win = game['scores']['home']['total'] > game['scores']['away']['total']
+                    let scoresDif = gamesBasketball.getScoresDifference(gamesOpponent, this.moment(game['date']), game['teams']['away']['id'])
+                    let norm = this.ToolsAverage.emaMulti(scoresDif)
+                    let ema2 = this.ToolsAverage.emaMulti(scoresDif, 5)
+                    let ema4 = this.ToolsAverage.emaMulti(scoresDif, 15)
+                    let ema6 = this.ToolsAverage.emaMulti(scoresDif, 30)
+                
+                    let emaTeam = {ema: [{ema2}, {ema4}, {ema6}, {norm}]}
+                    gameToReturn.push({...game, statistics: {win, emaTeam}})
+                    cptGame++
+                }
+            }
+        }
+
+        return gameToReturn
     }
 
     sortByCountry(games) {
@@ -196,15 +248,30 @@ class GamesBasketball {
     }
 
     getScoresAverage(games, dateGame, idTeam) {
+        function compareDate(a, b) {
+            let moment = require('./../config/moment')
+            if (moment(a['date']).isBefore(b['date'])) {
+                return -1;
+            }
+            if (moment(a['date']).isAfter(b['date'])) {
+                return 1;
+            }
+            // a must be equal to b
+            return 0;
+        }
+
         let scoresAvgHome = []
 
-        games.forEach(game => {
-            if (this.moment(game['date']).isBefore(this.moment(dateGame))) {
-                if (game['teams']['home']['id'] === idTeam) {
-                    let scoreAvg = game['scores']['home']['total'] / game['scores']['away']['total']
+        let gamesSortDate = games.sort(compareDate)
+
+        gamesSortDate.forEach(game => {
+            if (this.moment(game['date']).isBefore(dateGame)) {
+                let scoreAvg = null
+                if (game['teams']['home']['id'] === parseInt(idTeam) && (game['status']['short'] === 'FT' || game['status']['short'] === 'AOT')) {
+                    scoreAvg = game['scores']['home']['total'] / game['scores']['away']['total']
                     scoresAvgHome.push({date: this.moment(game['date']), scoreAvg: scoreAvg})
-                } else if (game['teams']['away']['id'] === idTeam) {
-                    let scoreAvg = game['scores']['away']['total'] / game['scores']['home']['total']
+                } else if (game['teams']['away']['id'] === parseInt(idTeam) && (game['status']['short'] === 'FT' || game['status']['short'] === 'AOT')) {
+                    scoreAvg = game['scores']['away']['total'] / game['scores']['home']['total']
                     scoresAvgHome.push({date: this.moment(game['date']), scoreAvg: scoreAvg})
                 }
             }
@@ -214,15 +281,62 @@ class GamesBasketball {
     }
 
     getScoresDifference(games, dateGame, idTeam) {
+        function compareDate(a, b) {
+            let moment = require('./../config/moment')
+            if (moment(a['date']).isBefore(b['date'])) {
+                return -1;
+            }
+            if (moment(a['date']).isAfter(b['date'])) {
+                return 1;
+            }
+            // a must be equal to b
+            return 0;
+        }
+
         let scoresAvgHome = []
 
-        games.forEach(game => {
+        let gamesSortDate = games.sort(compareDate)
+
+        gamesSortDate.forEach(game => {
             if (this.moment(game['date']).isBefore(dateGame)) {
                 let scoreAvg = null
-                if (game['teams']['home']['id'] === parseInt(idTeam) && game['status']['short'] === 'FT') {
+                if (game['teams']['home']['id'] === parseInt(idTeam) && (game['status']['short'] === 'FT' || game['status']['short'] === 'AOT')) {
                     scoreAvg = game['scores']['home']['total'] - game['scores']['away']['total']
                     scoresAvgHome.push({date: this.moment(game['date']), scoreAvg: scoreAvg})
-                } else if (game['teams']['away']['id'] === parseInt(idTeam) && game['status']['short'] === 'FT') {
+                } else if (game['teams']['away']['id'] === parseInt(idTeam) && (game['status']['short'] === 'FT' || game['status']['short'] === 'AOT')) {
+                    scoreAvg = game['scores']['away']['total'] - game['scores']['home']['total']
+                    scoresAvgHome.push({date: this.moment(game['date']), scoreAvg: scoreAvg})
+                }
+            }
+        })
+
+        return scoresAvgHome
+    }
+
+    getScoresDifferenceOpponent(games, dateGame, idTeam) {
+        function compareDate(a, b) {
+            let moment = require('./../config/moment')
+            if (moment(a['date']).isBefore(b['date'])) {
+                return -1;
+            }
+            if (moment(a['date']).isAfter(b['date'])) {
+                return 1;
+            }
+            // a must be equal to b
+            return 0;
+        }
+
+        let scoresAvgHome = []
+
+        let gamesSortDate = games.sort(compareDate)
+
+        gamesSortDate.forEach(game => {
+            if (this.moment(game['date']).isBefore(dateGame)) {
+                let scoreAvg = null
+                if (game['teams']['home']['id'] !== parseInt(idTeam) && (game['status']['short'] === 'FT' || game['status']['short'] === 'AOT')) {
+                    scoreAvg = game['scores']['home']['total'] - game['scores']['away']['total']
+                    scoresAvgHome.push({date: this.moment(game['date']), scoreAvg: scoreAvg})
+                } else if (game['teams']['away']['id'] !== parseInt(idTeam) && (game['status']['short'] === 'FT' || game['status']['short'] === 'AOT')) {
                     scoreAvg = game['scores']['away']['total'] - game['scores']['home']['total']
                     scoresAvgHome.push({date: this.moment(game['date']), scoreAvg: scoreAvg})
                 }
@@ -233,15 +347,29 @@ class GamesBasketball {
     }
 
     getScoresTotal(games, dateGame, idTeam) {
+        function compareDate(a, b) {
+            let moment = require('./../config/moment')
+            if (moment(a['date']).isBefore(b['date'])) {
+                return -1;
+            }
+            if (moment(a['date']).isAfter(b['date'])) {
+                return 1;
+            }
+            // a must be equal to b
+            return 0;
+        }
+
         let scoresAvgHome = []
 
-        games.forEach(game => {
+        let gamesSortDate = games.sort(compareDate)
+
+        gamesSortDate.forEach(game => {
             if (this.moment(game['date']).isBefore(dateGame)) {
                 let scoreAvg = null
-                if (game['teams']['home']['id'] === parseInt(idTeam) && game['status']['short'] === 'FT') {
+                if (game['teams']['home']['id'] === parseInt(idTeam) && (game['status']['short'] === 'FT' || game['status']['short'] === 'AOT')) {
                     scoreAvg = game['scores']['home']['total'] + game['scores']['away']['total']
                     scoresAvgHome.push({date: this.moment(game['date']), scoreAvg: scoreAvg})
-                } else if (game['teams']['away']['id'] === parseInt(idTeam) && game['status']['short'] === 'FT') {
+                } else if (game['teams']['away']['id'] === parseInt(idTeam) && (game['status']['short'] === 'FT' || game['status']['short'] === 'AOT')) {
                     scoreAvg = game['scores']['away']['total'] + game['scores']['home']['total']
                     scoresAvgHome.push({date: this.moment(game['date']), scoreAvg: scoreAvg})
                 }
@@ -252,16 +380,63 @@ class GamesBasketball {
     }
 
     getPoints(games, dateGame, idTeam) {
+        function compareDate(a, b) {
+            let moment = require('./../config/moment')
+            if (moment(a['date']).isBefore(b['date'])) {
+                return -1;
+            }
+            if (moment(a['date']).isAfter(b['date'])) {
+                return 1;
+            }
+            // a must be equal to b
+            return 0;
+        }
+
         let scoresAvgHome = []
 
-        games.forEach(game => {
+        let gamesSortDate = games.sort(compareDate)
+
+        gamesSortDate.forEach(game => {
             if (this.moment(game['date']).isBefore(dateGame)) {
                 let scoreAvg = null
-                if (game['teams']['home']['id'] === parseInt(idTeam) && game['status']['short'] === 'FT') {
+                if (game['teams']['home']['id'] === parseInt(idTeam) && (game['status']['short'] === 'FT' || game['status']['short'] === 'AOT')) {
                     scoreAvg = game['scores']['home']['total']
                     scoresAvgHome.push({date: this.moment(game['date']), scoreAvg: scoreAvg})
-                } else if (game['teams']['away']['id'] === parseInt(idTeam) && game['status']['short'] === 'FT') {
+                } else if (game['teams']['away']['id'] === parseInt(idTeam) && (game['status']['short'] === 'FT' || game['status']['short'] === 'AOT')) {
                     scoreAvg = game['scores']['away']['total']
+                    scoresAvgHome.push({date: this.moment(game['date']), scoreAvg: scoreAvg})
+                }
+            }
+        })
+
+        return scoresAvgHome
+    }
+
+    getWinLose(games, dateGame, idTeam) {
+        function compareDate(a, b) {
+            let moment = require('./../config/moment')
+            if (moment(a['date']).isBefore(b['date'])) {
+                return -1;
+            }
+            if (moment(a['date']).isAfter(b['date'])) {
+                return 1;
+            }
+            // a must be equal to b
+            return 0;
+        }
+
+        let scoresAvgHome = []
+
+        let gamesSortDate = games.sort(compareDate)
+
+        gamesSortDate.forEach(game => {
+            if (this.moment(game['date']).isBefore(dateGame)) {
+                let scoreAvg = null
+                if (game['teams']['home']['id'] === parseInt(idTeam) && (game['status']['short'] === 'FT' || game['status']['short'] === 'AOT')) {
+                    scoreAvg = game['scores']['home']['total'] > game['scores']['away']['total'] ? 1 : -1
+                    scoresAvgHome.push({date: this.moment(game['date']), scoreAvg: scoreAvg})
+                } else if (game['teams']['away']['id'] === parseInt(idTeam) && (game['status']['short'] === 'FT' || game['status']['short'] === 'AOT')) {
+                    scoreAvg = game['scores']['away']['total'] > game['scores']['home']['total'] ? 1 : -1
                     scoresAvgHome.push({date: this.moment(game['date']), scoreAvg: scoreAvg})
                 }
             }

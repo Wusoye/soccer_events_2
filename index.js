@@ -55,14 +55,16 @@ app.get('/api/basketball/games-by-team/:idTeam', async (req, res) => {
 app.get('/api/basketball/ema-by-team/:idTeam/:dateGame', async (req, res) => {
     const { idTeam, dateGame } = req.params
     const Games = await gamesBasketball.getByTeam(parseInt(idTeam))
+    const statisticsOpponents = await gamesBasketball.getStatisticsOpponents(Games, dateGame, idTeam)
+    //console.log(statisticsOpponents);
     const scoresDif = gamesBasketball.getScoresDifference(Games, moment(dateGame), idTeam)
     const norm = ToolsAverage.emaMulti(scoresDif)
-    const ema2 = ToolsAverage.emaMulti(scoresDif, 3)
-    const ema4 = ToolsAverage.emaMulti(scoresDif, 6)
-    const ema6 = ToolsAverage.emaMulti(scoresDif, 9)
+    const ema2 = ToolsAverage.emaMulti(scoresDif, 5)
+    const ema4 = ToolsAverage.emaMulti(scoresDif, 15)
+    const ema6 = ToolsAverage.emaMulti(scoresDif, 30)
 
     const emaTeam = {ema: [{ema2}, {ema4}, {ema6}, {norm}]}
-    res.send(emaTeam)
+    res.send({emaTeam, statisticsOpponents})
 })
 
 /** EJS */
