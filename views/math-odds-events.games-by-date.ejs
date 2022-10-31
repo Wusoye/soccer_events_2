@@ -1,50 +1,70 @@
 <%- include('includes/header') -%>
 
-<% Object.keys(items).forEach(function(Leagues){ %>
+<main class="container mt-3">
 
-    <h5>
-        <%= items[Leagues].name %> / <%= items[Leagues].id %>
-    </h5>
+    <% 
+    
+        Object.keys(items).forEach((Leagues) => { 
+            events = items[Leagues]['events']
+    %>
 
-    <% events=items[Leagues].events %>
-        <table class="table">
+
+    <h1 class="display-4 mt-3"><%= items[Leagues]['name'] %></h1>
+
+
+    <table class="table">
             <thead>
                 <tr>
-                    <th scope="col">Home</th>
-                    <th scope="col">Away</th>
-                    <th scope="col">Status</th>
-                    <th data-sortable="true" scope="col">Date</th>
-                    <th scope="col">Action</th>
-                    <th scope="col">Detail_2 1N2</th>
+                    <th scope="col" style="width: 18%">Date</th>
+                    <th scope="col" style="width: 33%">Teams</th>
+                    <th scope="col" style="width: 10%">Status</th>
+                    <th scope="col" style="width: 10%">Scores</th>
+                    <th scope="col" style="width: 10%"></th>
                 </tr>
             </thead>
 
             <tbody>
-                <% Object.keys(events).forEach(function(Event){ %>
-                    <tr>
-                        <td>
-                            <%= events[Event].hometeam_name %>
-                        </td>
-                        <td>
-                            <%= events[Event].awayteam_name %>
-                        </td>
-                        <td>
-                            <% if(events[Event].livescore){ %> <%= events[Event].livescore.status %> <% if(events[Event].livescore.value){ %> / <%= events[Event].livescore.value %> <% }} %>
-                        </td>
-                        <td>
-                            <%= moment(events[Event].time).add(2,'h').format('lll') %>
-                        </td>
-                        <td>
-                            <a target="_blank" href="/event_detail/<%- events[Event].id -%>" style="font-weight: bold; text-decoration: none; color: black;" >Détail</a>
-                        </td>
-                        <td>
-                            <a class="aLien" target="_blank" href="/event_detail_2/<%- events[Event].id -%>" style="font-weight: bold; text-decoration: none; color: black;" >Détail 2</a>
-                        </td>
-                    </tr>
-                    <% }) %>
+                <% 
+                
+                    Object.keys(events).forEach((Event) => { 
+                    
+                %>
+
+                <tr>
+                    <th>
+                        <%= moment(events[Event].time).add(2,'h').format('lll') %>
+                    </th>
+                    <td>
+                        <%= events[Event].hometeam_name %> - <%= events[Event].awayteam_name %>
+                    </td>
+                    <td>
+                        <% if(events[Event].livescore){ %> <%= events[Event].livescore.status %><% } %> 
+                    </td>
+                    <td>
+                        <% if(events[Event].livescore && events[Event].livescore.value){ %><%= events[Event].livescore.value %><% } %>
+                    </td>
+                    <td>
+                        <a class="aLien" target="_blank" href="/event_detail_2/<%- events[Event]['id'] -%>" style="text-decoration: none;" >+</a>
+                    </td>
+                </tr>
+
+
+                <% 
+            
+                    }) 
+                
+                %>
             </tbody>
         </table>
-        <br>
-        <% }) %>
+
+
+    <%
+            
+        });
+        
+    %> 
+
+
+</main>
 
 <%- include('includes/footer') -%>

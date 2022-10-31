@@ -7,7 +7,7 @@ let moment = require('./src/config/moment');
 let fs = require("fs");
 
 /** SERVICES */
-let { Fetch } = require('./src/services/Fetch.class')
+let Fetch = require('./src/services/Fetch.class')
 let gamesBasketball = require('./src/services/GamesBasketball.class')
 let clubSoccer = require('./src/services/ClubSoccer.class')
 let ToolsAverage = require('./src/services/ToolsAverage.class')
@@ -70,7 +70,6 @@ app.get('/api/basketball/ema-by-team/:idTeam/:dateGame', async (req, res) => {
     const { idTeam, dateGame } = req.params
     const Games = await gamesBasketball.getByTeam(parseInt(idTeam))
     const statisticsOpponents = await gamesBasketball.getStatisticsOpponents(Games, dateGame, idTeam)
-    //console.log(statisticsOpponents);
     const scoresDif = gamesBasketball.getScoresDifference(Games, moment(dateGame), idTeam)
     const norm = ToolsAverage.emaMulti(scoresDif)
     const ema2 = ToolsAverage.emaMulti(scoresDif, 5)
@@ -151,14 +150,12 @@ app.get('/club-soccer/games-by-date/:strDate?', async (req, res) => {
     let { strDate } = req.params
     if (strDate === undefined) strDate = moment().format('YYYY-MM-DD')
     let games = await clubSoccer.getByDate(strDate)
-    //console.log(games);
     res.render('club-soccer.games-by-date.ejs', { games })
 })
 
 app.get('/club-soccer/games-by-id/:idGame', async (req, res) => {
     let { idGame } = req.params
     let game = await clubSoccer.getById(idGame)
-    console.log(game);
     res.render('club-soccer.games-by-id.ejs', { game })
 })
 

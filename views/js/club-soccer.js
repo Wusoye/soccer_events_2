@@ -10,8 +10,8 @@ const idGame = homeData.split(';')[0]
 const team1 = homeData.split(';')[1]
 const team2 = awayData.split(';')[1]
 
-const PERIODE = 5
-const PERIODE_BIS = 2
+const PERIODE = 10
+const PERIODE_BIS = 5
 
 const SLICE = 10
 
@@ -92,8 +92,10 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
                 for (const infos of emaHome) {
                     let tabValuesTmp = []
                     if (moment(dataGame['date']).isAfter(infos['date'], 'day')) {
-                        infos['ema']['our_value'] !== null ? dataEmaExpGoa.push([index, infos['ema']['our_value']]) : null
-                        dataExpGoa.push([index, infos['our_exp_goa']])
+                        //infos['ema']['our_value'] !== null ? dataEmaExpGoa.push([index, (infos['ema']['our_value'])]) : null
+                        //infos['ema']['opponent_value'] !== null ? dataExpGoa.push([index, infos['ema']['opponent_value']]) : null
+                        dataEmaExpGoa.push([index, infos['our_exp_goa']])
+                        dataExpGoa.push([index, infos['opponent_exp_goa']])
                         dataGoa.push([index, infos['our_goals'] - infos['opp_goals']])
 
                         let _id = infos['_id']
@@ -102,7 +104,7 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
                         await fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + _id)
                             .then((response) => response.json())
                             .then((gameHisto) => {
-
+                                
                                 if (gameHisto['team1'] === team1) {
                                     nameHisto = gameHisto['team2']
                                     tabValuesTmp.push(gameHisto['team2'])
@@ -116,9 +118,9 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
                                         tabValuesTmp.push('L')
                                     }
                                     tabValuesTmp.push(gameHisto['score1'] - gameHisto['score2'])
-                                    tabValuesTmp.push(infos['ema']['our_value'] !== null ? infos['ema']['our_value'].round() : '')
+                                    tabValuesTmp.push(infos['ema']['our_value'] !== null ? (infos['ema']['our_value'] / infos['ema']['opponent_value']).round() : '')
                                     tabValuesTmp.push(infos['our_exp_goa'].round())
-                                    tabValuesTmp.push(infos['ema']['opponent_value'] !== null ? infos['ema']['opponent_value'].round() : '')
+                                    //tabValuesTmp.push(infos['ema']['opponent_value'] !== null ? infos['ema']['opponent_value'].round() : '')
                                     tabValuesTmp.push(infos['opponent_exp_goa'].round())
                                 } else
                                     if (gameHisto['team2'] === team1) {
@@ -133,9 +135,9 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
                                             tabValuesTmp.push('L')
                                         }
                                         tabValuesTmp.push(gameHisto['score2'] - gameHisto['score1'])
-                                        tabValuesTmp.push(infos['ema']['our_value'] !== null ? infos['ema']['our_value'].round() : '')
+                                        tabValuesTmp.push(infos['ema']['our_value'] !== null ? (infos['ema']['our_value'] / infos['ema']['opponent_value']).round() : '')
                                         tabValuesTmp.push(infos['our_exp_goa'].round())
-                                        tabValuesTmp.push(infos['ema']['opponent_value'] !== null ? infos['ema']['opponent_value'].round() : '')
+                                        //tabValuesTmp.push(infos['ema']['opponent_value'] !== null ? infos['ema']['opponent_value'].round() : '')
                                         tabValuesTmp.push(infos['opponent_exp_goa'].round())
                                     }
 
@@ -147,7 +149,8 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
                 }
 
                 createTable(
-                    ['Name', 'Result', 'Score', 'Our Ema', 'Our Exp.', 'Opp Ema', 'Opp Exp.'],
+                    //Ema Exp Goa. => EEG
+                    ['Name', 'Result', 'Score', 'EEG', 'Our', 'Opp.'],
                     tabValues.reverse(),
                     tableHome
                 )
@@ -162,7 +165,7 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
                         for (const infos of emaHome) {
 
                             if (moment(dataGame['date']).isAfter(infos['date'], 'day')) {
-                                infos['ema']['our_value'] !== null ? dataEmaExpGoaBis.push([index, infos['ema']['our_value']]) : null
+                                //infos['ema']['our_value'] !== null ? dataEmaExpGoaBis.push([index, infos['ema']['our_value']]) : null
                                 index++
                             }
                         }
@@ -224,8 +227,10 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
                 for (const infos of emaAway) {
                     let tabValuesTmp = []
                     if (moment(dataGame['date']).isAfter(infos['date'], 'day')) {
-                        infos['ema']['our_value'] !== null ? dataEmaExpGoa.push([index, infos['ema']['our_value']]) : null
-                        dataExpGoa.push([index, infos['our_exp_goa']])
+                        //infos['ema']['our_value'] !== null ? dataEmaExpGoa.push([index, infos['ema']['our_value']]) : null
+                        //infos['ema']['opponent_value'] !== null ? dataExpGoa.push([index, infos['ema']['opponent_value']]) : null
+                        dataEmaExpGoa.push([index, infos['our_exp_goa']])
+                        dataExpGoa.push([index, infos['opponent_exp_goa']])
                         dataGoa.push([index, infos['our_goals'] - infos['opp_goals']])
 
                         let _id = infos['_id']
@@ -248,9 +253,9 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
                                         tabValuesTmp.push('L')
                                     }
                                     tabValuesTmp.push(gameHisto['score1'] - gameHisto['score2'])
-                                    tabValuesTmp.push(infos['ema']['our_value'] !== null ? infos['ema']['our_value'].round() : '')
+                                    tabValuesTmp.push(infos['ema']['our_value'] !== null ? (infos['ema']['our_value'] / infos['ema']['opponent_value']).round() : '')
                                     tabValuesTmp.push(infos['our_exp_goa'].round())
-                                    tabValuesTmp.push(infos['ema']['opponent_value'] !== null ? infos['ema']['opponent_value'].round() : '')
+                                    //tabValuesTmp.push(infos['ema']['opponent_value'] !== null ? infos['ema']['opponent_value'].round() : '')
                                     tabValuesTmp.push(infos['opponent_exp_goa'].round())
                                 } else
                                     if (gameHisto['team2'] === team2) {
@@ -265,9 +270,9 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
                                             tabValuesTmp.push('L')
                                         }
                                         tabValuesTmp.push(gameHisto['score2'] - gameHisto['score1'])
-                                        tabValuesTmp.push(infos['ema']['our_value'] !== null ? infos['ema']['our_value'].round() : '')
+                                        tabValuesTmp.push(infos['ema']['our_value'] !== null ? (infos['ema']['our_value'] / infos['ema']['opponent_value']).round() : '')
                                         tabValuesTmp.push(infos['our_exp_goa'].round())
-                                        tabValuesTmp.push(infos['ema']['opponent_value'] !== null ? infos['ema']['opponent_value'].round() : '')
+                                        //tabValuesTmp.push(infos['ema']['opponent_value'] !== null ? infos['ema']['opponent_value'].round() : '')
                                         tabValuesTmp.push(infos['opponent_exp_goa'].round())
                                     }
 
@@ -279,7 +284,8 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
                 }
 
                 createTable(
-                    ['Name', 'Result', 'Score', 'Our Ema', 'Our Exp.', 'Opp Ema', 'Opp Exp.'],
+                     //Ema Exp Goa. => EEG
+                     ['Name', 'Result', 'Score', 'EEG', 'Our', 'Opp.'],
                     tabValues.reverse(),
                     tableAway
                 )
@@ -295,7 +301,7 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
                         for (const infos of emaHome) {
 
                             if (moment(dataGame['date']).isAfter(infos['date'], 'day')) {
-                                infos['ema']['our_value'] !== null ? dataEmaExpGoaBis.push([index, infos['ema']['our_value']]) : null
+                                //infos['ema']['our_value'] !== null ? dataEmaExpGoaBis.push([index, infos['ema']['our_value']]) : null
                                 index++
                             }
                         }

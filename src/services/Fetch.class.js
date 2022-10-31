@@ -11,10 +11,10 @@ class Fetch {
         };
 
         try {
-        let response = await axios.request(options)
-        return response
+            let response = await axios.request(options)
+            return response
         } catch (e) {
-        throw new Error(e)
+            throw new Error(e)
         }
     }
 }
