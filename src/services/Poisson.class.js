@@ -80,6 +80,6 @@ class Poisson {
     show_distrib() {
         console.log("local: ", homeDistrib, "visitor: ", awayDistrib);
     }
-
-
 }
+
+module.exports = Poisson

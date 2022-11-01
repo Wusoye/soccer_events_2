@@ -1,36 +1,36 @@
 <%- include('includes/header') -%>
 
-<script src="/js/club-soccer.js" type="text/javascript" defer></script>
+<script src="/js/football-statistics.js" type="text/javascript" defer></script>
 
 <main class="container mt-3">
 
     <div class="row">
         <div class="col text-start">
-            <h3 class=""><%= game['league'] %></h3>
+            <h3 class=""><%= game['country']['name'] %> - <%= game['tournament']['name'] %></h3>
         </div>
         <div class="col text-end">
-            <h5><%= moment(game['date']).format('YYYY-MM-DD') %></h5>
+            <h5><%= moment.unix(game['startTime']).format('lll') %></h5>
         </div>
     </div>
 
     <div class="row">
         <div class="col-6 text-end">
-            <h1 class="display-6 mt-3"><%= game['team1'] %></h1>
+            <h1 class="display-6 mt-3"><%= game['homeTeam']['name'] %></h1>
         </div>
         <div class="col-6 text-start">
-            <h1 class="display-6 mt-3"><%= game['team2'] %></h1>
+            <h1 class="display-6 mt-3"><%= game['awayTeam']['name'] %></h1>
         </div>
     </div>
 
 
-    <% if (game['score1'] >= 0 && game['score2'] >= 0) { %> 
+    <% if (game['homeScore'] && game['awayScore']) { %> 
 
 
         <div class="row">
 
             <div class="col text-center">
                 <h4>
-                    <small class="text-muted"><%= game['score1'] %> - <%= game['score2'] %>  (<%= game['score1'] + game['score2'] %>)</small>
+                    <small class="text-muted"><%= game['homeScore']['final'] %> - <%= game['awayScore']['final'] %>  (<%= game['homeScore']['final'] + game['awayScore']['final'] %>)</small>
                 </h4>
             </div>
 
@@ -40,14 +40,14 @@
     <% } %>
 
 
-    <div class="row mt-4"  style="min-height: 300px;">
+    <div class="row mt-4" id="graphGame" data="<%= game['id'] %>" style="min-height: 300px;">
 
         <div class="col-6">
-            <svg id="graphHome" data="<%= game['_id'] %>;<%= game['team1'] %>" width="100%" height="100%"></svg>
+            <svg id="graphHome" data="<%= game['homeTeam']['id'] %>" width="100%" height="100%"></svg>
         </div>
 
         <div class="col-6">
-            <svg id="graphAway" data="<%= game['_id'] %>;<%= game['team2'] %>" width="100%" height="100%"></svg>
+            <svg id="graphAway" data="<%= game['awayTeam']['id'] %>" width="100%" height="100%"></svg>
         </div>
 
     </div>

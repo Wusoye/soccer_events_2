@@ -1,0 +1,55 @@
+<%- include('includes/header') -%>
+<main class="container mt-3">
+
+    <% 
+
+        Object.keys(games).forEach(key => {
+
+    %>
+
+    <h1 class="display-4 mt-3"><%= key %></h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col" style="width: 15%">Start</th>
+                <th scope="col" style="width: 15%">League</th>
+                <th scope="col" style="width: 25%">Teams</th>
+                <th scope="col" style="width: 7%">Status</th>
+                <th scope="col" style="width: 7%">Scores</th>
+                <th scope="col" style="width: 7%"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <%
+
+                games[key].forEach(game => {
+            
+            %>
+
+            <tr>
+                <th scope="row"><%= moment.unix(game['startTime']).format('lll') %></th>
+                <td><%= game['tournament']['name'] %></td>
+                <td><%= game['homeTeam']['name'] %> - <%= game['awayTeam']['name'] %></td>
+                <td><%= game['status'] %></td>
+                <td><%= game['homeScore'] ? game['homeScore']['final'] : '' %> - <%= game['awayScore'] ? game['awayScore']['final'] : '' %></td>
+                <td><a class="text-decoration-none fw-bold" href="/football-statistics/games-by-id/<%- game['id'] -%>" target="_blank">+</a></td>
+            </tr>
+
+            <%
+            
+                });
+            
+            %>
+        </tbody>
+    </table>
+
+
+    <%
+            
+        });
+        
+    %> 
+
+</main>
+<%- include('includes/footer') -%>

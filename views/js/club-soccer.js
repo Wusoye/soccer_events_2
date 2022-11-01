@@ -2,6 +2,7 @@ let graphHome = document.getElementById('graphHome')
 let graphAway = document.getElementById('graphAway')
 let tableHome = document.getElementById('tableHome')
 let tableAway = document.getElementById('tableAway')
+let tablePredictions = document.getElementById('tablePredictions')
 
 let homeData = graphHome.getAttribute('data')
 let awayData = graphAway.getAttribute('data')
@@ -11,7 +12,7 @@ const team1 = homeData.split(';')[1]
 const team2 = awayData.split(';')[1]
 
 const PERIODE = 10
-const PERIODE_BIS = 5
+const PERIODE_BIS = 2
 
 const SLICE = 10
 
@@ -36,50 +37,14 @@ let DISPLAY = {
 
 
 
-function createTable(titles, values, node) {
-    let table = document.createElement('table')
-    table.setAttribute('class', 'table')
-    let thead = document.createElement('thead')
-    let trH = document.createElement('tr')
-    titles.forEach(title => {
-        let th = document.createElement('th')
-        th.setAttribute('scope', 'col')
-        //th.setAttribute('style')
-        let txt = document.createTextNode(title)
-        th.appendChild(txt)
-        trH.appendChild(th)
-    })
-    thead.appendChild(trH)
-    table.appendChild(thead)
-    let tbody = document.createElement('tbody')
-    values.forEach(ligne => {
-        let trB = document.createElement('tr')
-        ligne.forEach((value, index) => {
-            if (index === 0) {
-                let th = document.createElement('th')
-                th.setAttribute('scope', 'row')
-                let txt = document.createTextNode(value)
-                th.appendChild(txt)
-                trB.appendChild(th)
-            } else {
-                let td = document.createElement('td')
-                let txt = document.createTextNode(value)
-                td.appendChild(txt)
-                trB.appendChild(td)
-            }
-        })
-        tbody.appendChild(trB)
-    })
-    table.appendChild(tbody)
-    node.appendChild(table)
-}
 
 
 fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
     .then((response) => response.json())
-    .then((dataGame) => {
-
-        fetch('http://127.0.0.1:8080/api/club-soccer/ema-expected-goal-by-team/' + team1 + '/' + PERIODE)
+    .then(async (dataGame) => {
+        let xgHome = null
+        let xgHomeBis = null
+        await fetch('http://127.0.0.1:8080/api/club-soccer/ema-expected-goal-by-team/' + team1 + '/' + PERIODE)
             .then((response) => response.json())
             .then(async (emaHome) => {
 
@@ -103,7 +68,7 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
 
                         await fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + _id)
                             .then((response) => response.json())
-                            .then((gameHisto) => {
+                            .then(async (gameHisto) => {
                                 
                                 if (gameHisto['team1'] === team1) {
                                     nameHisto = gameHisto['team2']
@@ -119,6 +84,7 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
                                     }
                                     tabValuesTmp.push(gameHisto['score1'] - gameHisto['score2'])
                                     tabValuesTmp.push(infos['ema']['our_value'] !== null ? (infos['ema']['our_value'] / infos['ema']['opponent_value']).round() : '')
+                                    infos['ema']['our_value'] !== null ? xgHome = infos['ema']['our_value'] : null
                                     tabValuesTmp.push(infos['our_exp_goa'].round())
                                     //tabValuesTmp.push(infos['ema']['opponent_value'] !== null ? infos['ema']['opponent_value'].round() : '')
                                     tabValuesTmp.push(infos['opponent_exp_goa'].round())
@@ -136,6 +102,7 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
                                         }
                                         tabValuesTmp.push(gameHisto['score2'] - gameHisto['score1'])
                                         tabValuesTmp.push(infos['ema']['our_value'] !== null ? (infos['ema']['our_value'] / infos['ema']['opponent_value']).round() : '')
+                                        infos['ema']['our_value'] !== null ? xgHome = infos['ema']['our_value'] : null
                                         tabValuesTmp.push(infos['our_exp_goa'].round())
                                         //tabValuesTmp.push(infos['ema']['opponent_value'] !== null ? infos['ema']['opponent_value'].round() : '')
                                         tabValuesTmp.push(infos['opponent_exp_goa'].round())
@@ -148,10 +115,12 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
                     index++
                 }
 
+                tabValues.reverse()
+
                 createTable(
                     //Ema Exp Goa. => EEG
                     ['Name', 'Result', 'Score', 'EEG', 'Our', 'Opp.'],
-                    tabValues.reverse(),
+                    tabValues,
                     tableHome
                 )
 
@@ -165,12 +134,15 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
                         for (const infos of emaHome) {
 
                             if (moment(dataGame['date']).isAfter(infos['date'], 'day')) {
-                                //infos['ema']['our_value'] !== null ? dataEmaExpGoaBis.push([index, infos['ema']['our_value']]) : null
+                                infos['ema']['our_value'] !== null ? xgHomeBis = infos['ema']['our_value']  : null
+                                //infos['ema']['our_value'] !== null ? dataEmaExpGoaBis.push([index, (infos['ema']['our_value'] / infos['ema']['opponent_value']).round()]) : null
                                 index++
                             }
                         }
 
                     })
+
+                 
 
 
                 let graph = new jsGraphDisplay({
@@ -212,8 +184,9 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
                 graph.Draw('graphHome');
 
             })
-
-        fetch('http://127.0.0.1:8080/api/club-soccer/ema-expected-goal-by-team/' + team2 + '/' + PERIODE)
+            let xgAway = null
+            let xgAwayBis = null
+        await fetch('http://127.0.0.1:8080/api/club-soccer/ema-expected-goal-by-team/' + team2 + '/' + PERIODE)
             .then((response) => response.json())
             .then(async (emaAway) => {
 
@@ -238,7 +211,7 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
 
                         await fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + _id)
                             .then((response) => response.json())
-                            .then((gameHisto) => {
+                            .then(async (gameHisto) => {
 
                                 if (gameHisto['team1'] === team2) {
                                     nameHisto = gameHisto['team2']
@@ -254,7 +227,8 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
                                     }
                                     tabValuesTmp.push(gameHisto['score1'] - gameHisto['score2'])
                                     tabValuesTmp.push(infos['ema']['our_value'] !== null ? (infos['ema']['our_value'] / infos['ema']['opponent_value']).round() : '')
-                                    tabValuesTmp.push(infos['our_exp_goa'].round())
+                                        infos['ema']['our_value'] !== null ? xgAway = infos['ema']['our_value'] : null
+                                        tabValuesTmp.push(infos['our_exp_goa'].round())
                                     //tabValuesTmp.push(infos['ema']['opponent_value'] !== null ? infos['ema']['opponent_value'].round() : '')
                                     tabValuesTmp.push(infos['opponent_exp_goa'].round())
                                 } else
@@ -271,6 +245,7 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
                                         }
                                         tabValuesTmp.push(gameHisto['score2'] - gameHisto['score1'])
                                         tabValuesTmp.push(infos['ema']['our_value'] !== null ? (infos['ema']['our_value'] / infos['ema']['opponent_value']).round() : '')
+                                        infos['ema']['our_value'] !== null ? xgAway = infos['ema']['our_value'] : null
                                         tabValuesTmp.push(infos['our_exp_goa'].round())
                                         //tabValuesTmp.push(infos['ema']['opponent_value'] !== null ? infos['ema']['opponent_value'].round() : '')
                                         tabValuesTmp.push(infos['opponent_exp_goa'].round())
@@ -283,10 +258,12 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
                     index++
                 }
 
+                tabValues.reverse()                
+
                 createTable(
                      //Ema Exp Goa. => EEG
                      ['Name', 'Result', 'Score', 'EEG', 'Our', 'Opp.'],
-                    tabValues.reverse(),
+                    tabValues,
                     tableAway
                 )
 
@@ -296,11 +273,12 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
 
                 await fetch('http://127.0.0.1:8080/api/club-soccer/ema-expected-goal-by-team/' + team2 + '/' + PERIODE_BIS)
                     .then((response) => response.json())
-                    .then(async (emaHome) => {
+                    .then(async (emaAway) => {
                         let index = 0
-                        for (const infos of emaHome) {
+                        for (const infos of emaAway) {
 
                             if (moment(dataGame['date']).isAfter(infos['date'], 'day')) {
+                                infos['ema']['our_value'] !== null ? xgAwayBis = infos['ema']['our_value'] : null
                                 //infos['ema']['our_value'] !== null ? dataEmaExpGoaBis.push([index, infos['ema']['our_value']]) : null
                                 index++
                             }
@@ -347,6 +325,29 @@ fetch('http://127.0.0.1:8080/api/club-soccer/games-by-id/' + idGame)
 
             })
 
+
+            console.log(xgHome);
+            console.log(xgAway);
+            console.log(xgHomeBis);
+            console.log(xgAwayBis);
+        
+            normal_distrib = new Poisson(xgHome, xgAway, 25)
+            matrice_normal = normal_distrib.predict_proba();
+            normal_proba = matrice_normal['percent']
+           
+            normal_distribBis = new Poisson(xgHomeBis, xgAwayBis, 25)
+            matrice_normalBis = normal_distribBis.predict_proba();
+            normal_probaBis = matrice_normalBis['percent']
+
+            createTable(
+                ['Type', '1', 'N', '2'],
+                [
+                    [`Predi. ${PERIODE}`, normal_proba[0].round(), normal_proba[1].round(), normal_proba[2].round()], 
+                    [`Predi. ${PERIODE_BIS}`, normal_probaBis[0].round(), normal_probaBis[1].round(), normal_probaBis[2].round()]
+                ],
+                tablePredictions
+            )
+            
     })
 
 
@@ -397,4 +398,127 @@ function min(tab) {
     })
 
     return Math.min(...tabReturn).round()
+}
+
+function createTable(titles, values, node) {
+    let table = document.createElement('table')
+    table.setAttribute('class', 'table')
+    let thead = document.createElement('thead')
+    let trH = document.createElement('tr')
+    titles.forEach(title => {
+        let th = document.createElement('th')
+        th.setAttribute('scope', 'col')
+        //th.setAttribute('style')
+        let txt = document.createTextNode(title)
+        th.appendChild(txt)
+        trH.appendChild(th)
+    })
+    thead.appendChild(trH)
+    table.appendChild(thead)
+    let tbody = document.createElement('tbody')
+    values.forEach(ligne => {
+        let trB = document.createElement('tr')
+        ligne.forEach((value, index) => {
+            if (index === 0) {
+                let th = document.createElement('th')
+                th.setAttribute('scope', 'row')
+                let txt = document.createTextNode(value)
+                th.appendChild(txt)
+                trB.appendChild(th)
+            } else {
+                let td = document.createElement('td')
+                let txt = document.createTextNode(value)
+                td.appendChild(txt)
+                trB.appendChild(td)
+            }
+        })
+        tbody.appendChild(trB)
+    })
+    table.appendChild(tbody)
+    node.appendChild(table)
+}
+
+
+function fact(nbr) {
+    var i, nbr, f = 1;
+    for (i = 1; i <= nbr; i++) {
+        f = f * i;   // ou f *= i;
+    }
+    return f;
+}
+
+class Poisson {
+    constructor(homeExpGoal, awayExpGoal, maxGoalDist) {
+        this.homeExpGoal = homeExpGoal
+        this.awayExpGoal = awayExpGoal
+        this.maxGoalDist = maxGoalDist
+
+        this.homeDistrib = []
+        this.awayDistrib = []
+        this.matriceGoalDistrib = {}
+
+        for (let i = 0; i <= maxGoalDist; i++) {
+            let kFact = fact(i)
+
+            let local = Math.exp(-this.homeExpGoal) * (Math.pow(this.homeExpGoal, i) / kFact)
+            let visitor = Math.exp(-this.awayExpGoal) * (Math.pow(this.awayExpGoal, i) / kFact)
+
+            this.homeDistrib.push(local)
+            this.awayDistrib.push(visitor)
+
+        }
+    }
+
+    predict_goals(probPercent) {
+        if (probPercent) {
+            return [this.homeDistrib, this.awayDistrib]
+        } else {
+            for (let k = 0; k < this.maxGoalDist; k++) {
+                this.homeDistrib[k] = this.homeDistrib[k] * 100
+                this.awayDistrib[k] = this.awayDistrib[k] * 100
+            }
+            return [this.homeDistrib, this.awayDistrib]
+        }
+    }
+
+    predict_proba() {
+
+        let home_prob = 0
+        let draw_prob = 0
+        let away_prob = 0
+
+        for (let local_i = 0; local_i < this.homeDistrib.length; local_i++) {
+            for (let visitor_i = 0; visitor_i < this.awayDistrib.length; visitor_i++) {
+
+                let local_prob_score = this.homeDistrib[local_i]
+                let visitor_prob_score = this.awayDistrib[visitor_i]
+                
+
+                if (local_i > visitor_i) {
+                    home_prob = local_prob_score * visitor_prob_score + home_prob
+                }
+                if (local_i == visitor_i) {
+                    draw_prob = local_prob_score * visitor_prob_score + draw_prob
+                }
+                if (local_i < visitor_i) {
+                    away_prob = local_prob_score * visitor_prob_score + away_prob
+                }
+
+                if (local_i <= 5 && visitor_i <= 5) {
+                    let score = String(local_i + '-' + visitor_i)
+                    this.matriceGoalDistrib[score] = local_prob_score * visitor_prob_score
+                }
+
+            }
+        }
+
+        this.matriceGoalDistrib['proba'] = [home_prob, draw_prob, away_prob]
+        this.matriceGoalDistrib['percent'] = [home_prob * 100, draw_prob * 100, away_prob * 100]
+        return this.matriceGoalDistrib
+
+    }
+
+    show_distrib() {
+        console.log("local: ", homeDistrib, "visitor: ", awayDistrib);
+    }
 }
