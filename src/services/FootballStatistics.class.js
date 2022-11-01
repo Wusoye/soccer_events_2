@@ -286,13 +286,13 @@ class FootballStatistics {
             let tabRes = []
             let xgB = 0
             let dateTimeGoal = null
-            console.log(games);
+           
             for(const gameIndex in games) {
                 const game = games[gameIndex]
                 for(const enventIndex in game['events']){
                     const event = game['events'][enventIndex]
                     if (typeof event !== "function" && event['author']['id'] === idPlayer) {
-                        console.log(event);
+                   
                         if (event['type'] === 'goal') {
                             dateTimeGoal = this.moment.unix(game['startTime']).add(event['minute'], 'minutes')
                             xgB = xgB + event['xg']
@@ -305,7 +305,7 @@ class FootballStatistics {
                 }
             }
 
-            console.log(tabRes);
+      
             return tabRes
         } catch (e) {
             console.log(e);
@@ -320,13 +320,12 @@ class FootballStatistics {
             let tabRes = []
             let xgB = 0
             let dateTimeGoal = null
-            console.log(games);
             for(const gameIndex in games) {
                 const game = games[gameIndex]
                 for(const enventIndex in game['events']){
                     const event = game['events'][enventIndex]
                     if (typeof event !== "function" && event['teamId'] === idTeam) {
-                        console.log(event);
+                  
                         if (event['type'] === 'goal') {
                             dateTimeGoal = this.moment.unix(game['startTime']).add(event['minute'], 'minutes')
                             xgB = xgB + event['xg']
@@ -339,7 +338,6 @@ class FootballStatistics {
                 }
             }
 
-            console.log(tabRes);
             return tabRes
         } catch (e) {
             console.log(e);
@@ -419,7 +417,6 @@ class FootballStatistics {
                 }               
             }
 
-            console.log({team: {id: idTeam, name: nameTeam}, xg: xgB, lastGoal: dateTimeGoalLastGoal, dateTime});
             return [{team: {id: idTeam, name: nameTeam}, xg: xgB, lastGoal: dateTimeGoalLastGoal, dateTime}]
         } catch (e) {
             console.log(e);

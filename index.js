@@ -64,7 +64,6 @@ app.get('/api/basketball/games-by-id/:idGame', async (req, res) => {
 app.get('/api/basketball/games-by-team/:idTeam', async (req, res) => {
     const { idTeam } = req.params
     const games = await gamesBasketball.getByTeam(parseInt(idTeam))
-    console.log(games.length);
     res.send(games)
 })
 
@@ -190,7 +189,6 @@ app.get('/api/football-statistics/seasons-by-tournament/:idTournament', async (r
 app.get('/api/football-statistics/fixtures-by-season/:idSeason', async (req, res) => {
     const { idSeason } = req.params
     const fixtures = await footballStatistics.getFixturesBySeason(idSeason)
-    console.log(fixtures);
     res.send(fixtures)
 })
 
