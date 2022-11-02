@@ -88,10 +88,10 @@ class FootballStatistics {
             const fixtures = response['data']['result']
             for (const index in fixtures) {
                 const fixture = fixtures[index]
+                if (typeof fixture !== "function") {
                 const idFixture = parseInt(fixture['id'])
                 const query = { id: idFixture }
                 const resFind = await this.MongoQuery.find(this.DATABASE, this.COLLECTION, query)
-                if (typeof fixture !== "function") {
                     if (resFind.length === 0) {
                         //console.log(resFind);
                         //console.log('insert');
