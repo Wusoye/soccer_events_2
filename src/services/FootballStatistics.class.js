@@ -432,9 +432,9 @@ class FootballStatistics {
             for(const gameIndex in games) {
                 const game = games[gameIndex]
                 if (typeof game !== "function" && game['homeTeam']['id'] === idTeam && game['xg'] !== undefined) {
-                    tabRes.push({team: {id: game['homeTeam']['id'], name: game['homeTeam']['name']}, date: this.moment.unix(game['startTime']), our: game['xg']['home'], opp: game['xg']['away']})
+                    tabRes.push({team: {id: game['homeTeam']['id'], name: game['homeTeam']['name']}, gameId: game['id'], date: this.moment.unix(game['startTime']), our: game['xg']['home'], opp: game['xg']['away']})
                 } else if (typeof game !== "function" && game['xg'] !== undefined) {
-                    tabRes.push({team: {id: game['awayTeam']['id'], name: game['awayTeam']['name']}, date: this.moment.unix(game['startTime']), opp: game['xg']['home'], our: game['xg']['away']})
+                    tabRes.push({team: {id: game['awayTeam']['id'], name: game['awayTeam']['name']}, gameId: game['id'], date: this.moment.unix(game['startTime']), opp: game['xg']['home'], our: game['xg']['away']})
                 }
             }
 
