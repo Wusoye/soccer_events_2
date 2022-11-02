@@ -275,7 +275,8 @@ app.get('/football-statistics/games-by-date/:strDate?', async (req, res) => {
 app.get('/football-statistics/games-by-id/:idGame', async (req, res) => {
     let { idGame } = req.params
     const game = await footballStatistics.getById(idGame)
-    res.render('football-statistics.games-by-id.ejs', {game: game[0]})
+    header = game[0]['homeTeam']['name'] + ' - ' + game[0]['awayTeam']['name']
+    res.render('football-statistics.games-by-id.ejs', {game: game[0], header})
 })
 
 console.log('server run')

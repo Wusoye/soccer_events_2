@@ -3,9 +3,9 @@ let graphHome = document.getElementById('graphHome')
 let graphAway = document.getElementById('graphAway')
 let tablePredictions = document.getElementById('tablePredictions')
 
-let gameId = graphGame.getAttribute('data')
-let homeId = graphHome.getAttribute('data')
-let awayId = graphAway.getAttribute('data')
+let gameId = parseInt(graphGame.getAttribute('data'))
+let homeId = parseInt(graphHome.getAttribute('data'))
+let awayId = parseInt(graphAway.getAttribute('data'))
 
 console.log(gameId);
 console.log(homeId);
@@ -13,36 +13,48 @@ console.log(awayId);
 
 
 const init = async () => {
-    const game = await Fetch.get('/api/football-statistics/games-by-id/'+gameId)
+    const game = await Fetch.get('/api/football-statistics/games-by-id/' + gameId)
     const date = moment.unix(game[0]['startTime'])
-    const gamesHome = await Fetch.get('/api/football-statistics/games-by-team/'+homeId)
-    const gamesAway = await Fetch.get('/api/football-statistics/games-by-team/'+awayId)
-    const actualHomeXg = await Fetch.get('/api/football-statistics/xg-actual-by-team/'+homeId+'/'+moment(date).format('YYYY-MM-DD'))
-    const actualAwayXg = await Fetch.get('/api/football-statistics/xg-actual-by-team/'+awayId+'/'+moment(date).format('YYYY-MM-DD'))
-    const xgBetweenHome = await Fetch.get('/api/football-statistics/xg-between-goal-team/'+homeId)
-    const xgBetweenAway = await Fetch.get('/api/football-statistics/xg-between-goal-team/'+awayId)
+    const gamesHome = await Fetch.get('/api/football-statistics/games-by-team/' + homeId)
+    const gamesAway = await Fetch.get('/api/football-statistics/games-by-team/' + awayId)
+    const actualHomeXg = await Fetch.get('/api/football-statistics/xg-actual-by-team/' + homeId + '/' + moment(date).format('YYYY-MM-DD'))
+    const actualAwayXg = await Fetch.get('/api/football-statistics/xg-actual-by-team/' + awayId + '/' + moment(date).format('YYYY-MM-DD'))
+    const xgBetweenHome = await Fetch.get('/api/football-statistics/xg-between-goal-team/' + homeId)
+    const xgBetweenAway = await Fetch.get('/api/football-statistics/xg-between-goal-team/' + awayId)
 
-    console.log(gamesHome.length);
-    console.log(xgBetweenHome.length);
-   
-    const EMA_BETWEEN = 5
+
+    console.log(game);
+
+
+    createTable(
+        ['Odds', 'Home', 'Draw', 'Away'], 
+        [
+            ['Open', game[0]['odds'][0]['open'], game[0]['odds'][1]['open'], game[0]['odds'][2]['open']],
+            ['Last', game[0]['odds'][0]['last'], game[0]['odds'][1]['last'], game[0]['odds'][2]['last']]
+        ],
+        tablePredictions
+    )
+
+
+    const EMA_BETWEEN = 30
     const EMA_GAMES = 10
+    const EMA_GAMES_TAB = [3, 30]
 
     let tabXgBH = []
     let tabXgBA = []
 
     try {
-        for(const index in xgBetweenHome) {
+        for (const index in xgBetweenHome) {
             if (typeof xgBetweenHome[index] !== 'function' && moment(xgBetweenHome[index]['dateTimeGoal']).isBefore(date)) {
                 tabXgBH.push(xgBetweenHome[index]['xg'])
             }
         }
     } catch (e) {
         console.log(e);
-    }   
+    }
 
     try {
-        for(const index in xgBetweenAway) {
+        for (const index in xgBetweenAway) {
             if (typeof xgBetweenAway[index] !== 'function' && moment(xgBetweenAway[index]['dateTimeGoal']).isBefore(date)) {
                 tabXgBA.push(xgBetweenAway[index]['xg'])
             }
@@ -57,15 +69,30 @@ const init = async () => {
     let tabHistHome = []
     let tabHistAway = []
 
+    function compareGameDate(a, b) {
+        a = moment.unix(a['startTime'])
+        b = moment.unix(b['startTime'])
+        if (moment(a).isBefore(b)) {
+            return -1;
+        }
+        if (moment(a).isAfter(b)) {
+            return 1;
+        }
+        // a must be equal to b
+        return 0;
+    }
+
+    let gamesHomeSort = gamesHome.sort(compareGameDate)
+    let gamesAwaySort = gamesAway.sort(compareGameDate)
+
     try {
-        for(const index in gamesHome) {
-            const game = gamesHome[index]
+        for (const index in gamesHomeSort) {
+            const game = gamesHomeSort[index]
             if (typeof game !== "function" && game['xg'] !== undefined && moment.unix(game['startTime']).isBefore(date)) {
-                console.log(moment.unix(game['startTime']).format('lll'));
                 if (game['homeTeam']['id'] === homeId) {
-                    tabHistHome.push(game['xg']['home'])
+                    tabHistHome.push(game['xg']['home'] / game['xg']['away'])
                 } else {
-                    tabHistHome.push(game['xg']['away'])
+                    tabHistHome.push(game['xg']['away'] / game['xg']['home'])
                 }
             }
         }
@@ -74,13 +101,16 @@ const init = async () => {
     }
 
     try {
-        for(const index in gamesAway) {
-            const game = gamesAway[index]
+        for (const index in gamesAwaySort) {
+            const game = gamesAwaySort[index]
             if (typeof game !== "function" && game['xg'] !== undefined && moment.unix(game['startTime']).isBefore(date)) {
+                
                 if (game['homeTeam']['id'] === awayId) {
-                    tabHistAway.push(game['xg']['home'])
+                    console.log(game['homeTeam']['name']);
+                    tabHistAway.push(game['xg']['home'] / game['xg']['away'])
                 } else {
-                    tabHistAway.push(game['xg']['away'])
+                    console.log(game['awayTeam']['name']);
+                    tabHistAway.push(game['xg']['away'] / game['xg']['home'])
                 }
             }
         }
@@ -88,19 +118,33 @@ const init = async () => {
         console.log(e);
     }
 
+    let tabEmaHisto = []
 
-    ema_XgHH = ToolsAverage.ema(tabHistHome, EMA_GAMES)
-    ema_XgHA = ToolsAverage.ema(tabHistAway, EMA_GAMES)
+    for (let i = 0; i < EMA_GAMES_TAB.length; i++) {
+        try {
+            let periode = EMA_GAMES_TAB[i]
+            tabEmaHisto.push([
+                `${periode}`,
+                ToolsAverage.ema(tabHistHome, periode).round(2),
+                ToolsAverage.ema(tabHistAway, periode).round(2)
+            ])
+        } catch (e) {
+            console.log(e);
+        }
+    }
 
 
-    console.log(tabHistHome);
-    
     createTable(
-        ['Type', 'EMA', 'Home', 'Away'], 
+        ['Periode EMA', 'Home', 'Away'],
+        tabEmaHisto,
+        tablePredictions
+    )
+
+    createTable(
+        ['Type', 'EMA', 'Home', 'Away'],
         [
-            ['Histo.', `${EMA_GAMES}`,ema_XgHH.round(), ema_XgHA.round()],
-            ['Between', `${EMA_BETWEEN}` , ema_XgBH.round(), ema_XgBA.round()],
-            ['Actual', '', actualHomeXg[0]['xg'].round(), actualAwayXg[0]['xg'].round()]            
+            ['Between', `${EMA_BETWEEN}`, ema_XgBH.round(), ema_XgBA.round()],
+            ['Actual', '', actualHomeXg[0]['xg'].round(), actualAwayXg[0]['xg'].round()]
         ],
         tablePredictions
     )
