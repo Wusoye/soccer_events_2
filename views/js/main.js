@@ -1,4 +1,4 @@
-Number.prototype.round = function (decimal) {
+/*Number.prototype.round = function (decimal) {
     let prod = 100
     switch (decimal) {
         case 0:
@@ -21,6 +21,16 @@ Number.prototype.round = function (decimal) {
             prod = 100
             break;
     }
+    return Math.round(this * prod) / prod
+}*/
+
+Number.prototype.round = function (decimal) {
+    decimal === undefined ? decimal = 2 : null
+    prod = '1'
+    for (let index = 0; index < decimal; index++) {
+        prod = prod + '0'
+    }
+    prod = parseInt(prod)
     return Math.round(this * prod) / prod
 }
 
