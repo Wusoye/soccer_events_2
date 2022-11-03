@@ -93,6 +93,20 @@ function createTable(titles, values, node) {
     node.appendChild(table)
 }
 
+
+class Odds {
+    static perToOdd(percent) {
+        return 1 / percent * 100
+    }
+    static protoOdd(proba) {
+        return 1 / proba
+    }
+    static drop(start, end) {
+        return ((start - end)/(end - 1)*100)
+    }
+}
+
+
 class Poisson {
     static init(homeExpGoal, awayExpGoal, maxGoalDist) {
         this.homeDistrib = []
