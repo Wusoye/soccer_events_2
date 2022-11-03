@@ -86,7 +86,7 @@ class Odds {
     static perToOdds(percent) {
         return 1 / percent * 100
     }
-    static protoOdds(proba) {
+    static proToOdds(proba) {
         return 1 / proba
     }
     static drop(start, end) {
