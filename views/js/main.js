@@ -95,10 +95,10 @@ function createTable(titles, values, node) {
 
 
 class Odds {
-    static perToOdd(percent) {
+    static perToOdds(percent) {
         return 1 / percent * 100
     }
-    static protoOdd(proba) {
+    static protoOdds(proba) {
         return 1 / proba
     }
     static drop(start, end) {
