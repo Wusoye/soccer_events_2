@@ -96,7 +96,7 @@ class Odds {
 
 
 class Poisson {
-    static init(homeExpGoal, awayExpGoal, maxGoalDist) {
+    static #init(homeExpGoal, awayExpGoal, maxGoalDist) {
         this.homeDistrib = []
         this.awayDistrib = []
 
@@ -112,13 +112,13 @@ class Poisson {
     }
 
     static getGoal(homeExpGoal, awayExpGoal, maxGoalDist, maxGoalView) {
-        this.init(homeExpGoal, awayExpGoal, maxGoalDist)
+        this.#init(homeExpGoal, awayExpGoal, maxGoalDist)
         maxGoalView ? null : maxGoalView = 5
         return [this.homeDistrib.slice(0, maxGoalView), this.awayDistrib.slice(0, maxGoalView)]
     }
 
     static getProba(homeExpGoal, awayExpGoal, maxGoalDist) {
-        this.init(homeExpGoal, awayExpGoal, maxGoalDist)
+        this.#init(homeExpGoal, awayExpGoal, maxGoalDist)
         let home_prob = 0
         let draw_prob = 0
         let away_prob = 0
@@ -146,7 +146,7 @@ class Poisson {
     }
 
     static getScore(homeExpGoal, awayExpGoal, maxGoalDist, maxGoalView) {
-        this.init(homeExpGoal, awayExpGoal, maxGoalDist)
+        this.#init(homeExpGoal, awayExpGoal, maxGoalDist)
         maxGoalView ? null : maxGoalView = 5
         let matriceGoalDistrib = []
 
