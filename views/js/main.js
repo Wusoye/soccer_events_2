@@ -144,9 +144,6 @@ class Poisson {
     static getScore(homeExpGoal, awayExpGoal, maxGoalDist, maxGoalView) {
         this.init(homeExpGoal, awayExpGoal, maxGoalDist)
         maxGoalView ? null : maxGoalView = 5
-        let home_prob = 0
-        let draw_prob = 0
-        let away_prob = 0
         let matriceGoalDistrib = []
 
         for (let local_i = 0; local_i < this.homeDistrib.length; local_i++) {
@@ -154,17 +151,6 @@ class Poisson {
 
                 let local_prob_score = this.homeDistrib[local_i]
                 let visitor_prob_score = this.awayDistrib[visitor_i]
-
-
-                if (local_i > visitor_i) {
-                    home_prob = local_prob_score * visitor_prob_score + home_prob
-                }
-                if (local_i == visitor_i) {
-                    draw_prob = local_prob_score * visitor_prob_score + draw_prob
-                }
-                if (local_i < visitor_i) {
-                    away_prob = local_prob_score * visitor_prob_score + away_prob
-                }
 
                 if (local_i <= maxGoalView && visitor_i <= maxGoalView) {
                     let score = String(local_i + '-' + visitor_i)
