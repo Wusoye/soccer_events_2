@@ -113,7 +113,7 @@ class Poisson {
 
     static getGoal(homeExpGoal, awayExpGoal, maxGoalDist, maxGoalView) {
         this.#init(homeExpGoal, awayExpGoal, maxGoalDist)
-        maxGoalView ? null : maxGoalView = 5
+        maxGoalView === undefined ? maxGoalView = 5 : null 
         return [this.homeDistrib.slice(0, maxGoalView), this.awayDistrib.slice(0, maxGoalView)]
     }
 
@@ -147,7 +147,7 @@ class Poisson {
 
     static getScore(homeExpGoal, awayExpGoal, maxGoalDist, maxGoalView) {
         this.#init(homeExpGoal, awayExpGoal, maxGoalDist)
-        maxGoalView ? null : maxGoalView = 5
+        maxGoalView === undefined ? maxGoalView = 5 : null 
         let matriceGoalDistrib = []
 
         for (let local_i = 0; local_i < this.homeDistrib.length; local_i++) {
