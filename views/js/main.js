@@ -138,7 +138,8 @@ class Poisson {
             }
         }
 
-        return [home_prob, draw_prob, away_prob]
+        //return [home_prob, draw_prob, away_prob]
+        return {home: home_prob, draw: draw_prob, away: away_prob}
     }
 
     static getScore(homeExpGoal, awayExpGoal, maxGoalDist, maxGoalView) {
