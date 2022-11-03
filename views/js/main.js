@@ -34,24 +34,12 @@ Number.prototype.round = function (decimal) {
     return Math.round(this * prod) / prod
 }
 
-function max(tab) {
-    let tabReturn = []
-
-    tab.slice(-SLICE).forEach(el => {
-        tabReturn.push(el[1])
-    })
-
-    return Math.max(...tabReturn).round()
+Array.prototype.min = function () {
+    return Math.min(...this)
 }
 
-function min(tab) {
-    let tabReturn = []
-
-    tab.slice(-SLICE).forEach(el => {
-        tabReturn.push(el[1])
-    })
-
-    return Math.min(...tabReturn).round()
+Array.prototype.max = function () {
+    return Math.max(...this)
 }
 
 
