@@ -93,60 +93,68 @@ function createTable(titles, values, node) {
     node.appendChild(table)
 }
 
-function fact(nbr) {
-    var i, nbr, f = 1;
-    for (i = 1; i <= nbr; i++) {
-        f = f * i;   // ou f *= i;
-    }
-    return f;
-}
-
 class Poisson {
-    constructor(homeExpGoal, awayExpGoal, maxGoalDist) {
-        this.homeExpGoal = homeExpGoal
-        this.awayExpGoal = awayExpGoal
-        this.maxGoalDist = maxGoalDist
-
+    static init(homeExpGoal, awayExpGoal, maxGoalDist) {
         this.homeDistrib = []
         this.awayDistrib = []
-        this.matriceGoalDistrib = {}
 
         for (let i = 0; i <= maxGoalDist; i++) {
             let kFact = fact(i)
 
-            let local = Math.exp(-this.homeExpGoal) * (Math.pow(this.homeExpGoal, i) / kFact)
-            let visitor = Math.exp(-this.awayExpGoal) * (Math.pow(this.awayExpGoal, i) / kFact)
+            let local = Math.exp(-homeExpGoal) * (Math.pow(homeExpGoal, i) / kFact)
+            let visitor = Math.exp(-awayExpGoal) * (Math.pow(awayExpGoal, i) / kFact)
 
             this.homeDistrib.push(local)
             this.awayDistrib.push(visitor)
-
         }
     }
 
-    predict_goals(probPercent) {
-        if (probPercent) {
-            return [homeDistrib, awayDistrib]
-        } else {
-            for (let k = 0; k < maxGoalDist; k++) {
-                homeDistrib[k] = homeDistrib[k] * 100
-                awayDistrib[k] = awayDistrib[k] * 100
+    static getGoal(homeExpGoal, awayExpGoal, maxGoalDist) {
+        this.init(homeExpGoal, awayExpGoal, maxGoalDist)
+        return [this.homeDistrib, this.awayDistrib]
+    }
+
+    static getProba(homeExpGoal, awayExpGoal, maxGoalDist) {
+        this.init(homeExpGoal, awayExpGoal, maxGoalDist)
+        let home_prob = 0
+        let draw_prob = 0
+        let away_prob = 0
+
+        for (let local_i = 0; local_i < this.homeDistrib.length; local_i++) {
+            for (let visitor_i = 0; visitor_i < this.awayDistrib.length; visitor_i++) {
+
+                let local_prob_score = this.homeDistrib[local_i]
+                let visitor_prob_score = this.awayDistrib[visitor_i]
+
+                if (local_i > visitor_i) {
+                    home_prob = local_prob_score * visitor_prob_score + home_prob
+                }
+                if (local_i == visitor_i) {
+                    draw_prob = local_prob_score * visitor_prob_score + draw_prob
+                }
+                if (local_i < visitor_i) {
+                    away_prob = local_prob_score * visitor_prob_score + away_prob
+                }
             }
-            return [homeDistrib, awayDistrib]
         }
+
+        return [home_prob, draw_prob, away_prob]
     }
 
-    predict_proba() {
+    static getScore(homeExpGoal, awayExpGoal, maxGoalDist, maxGoalView) {
+        this.init(homeExpGoal, awayExpGoal, maxGoalDist)
+        maxGoalView ? null : maxGoalView = 5
+        let home_prob = 0
+        let draw_prob = 0
+        let away_prob = 0
+        let matriceGoalDistrib = []
 
-        home_prob = 0
-        draw_prob = 0
-        away_prob = 0
+        for (let local_i = 0; local_i < this.homeDistrib.length; local_i++) {
+            for (let visitor_i = 0; visitor_i < this.awayDistrib.length; visitor_i++) {
 
-        for (let local_i = 0; local_i < homeDistrib.length; local_i++) {
-            for (let visitor_i = 0; visitor_i < awayDistrib.length; visitor_i++) {
+                let local_prob_score = this.homeDistrib[local_i]
+                let visitor_prob_score = this.awayDistrib[visitor_i]
 
-                local_prob_score = homeDistrib[local_i]
-                visitor_prob_score = awayDistrib[visitor_i]
-                
 
                 if (local_i > visitor_i) {
                     home_prob = local_prob_score * visitor_prob_score + home_prob
@@ -158,23 +166,37 @@ class Poisson {
                     away_prob = local_prob_score * visitor_prob_score + away_prob
                 }
 
-                if (local_i <= 5 && visitor_i <= 5) {
-                    score = String(local_i + '-' + visitor_i)
-                    matriceGoalDistrib[score] = local_prob_score * visitor_prob_score
+                if (local_i <= maxGoalView && visitor_i <= maxGoalView) {
+                    let score = String(local_i + '-' + visitor_i)
+                    matriceGoalDistrib.push({ score: score, prob: local_prob_score * visitor_prob_score })
                 }
 
             }
         }
 
-        matriceGoalDistrib['proba'] = [home_prob, draw_prob, away_prob]
-        matriceGoalDistrib['percent'] = [home_prob * 100, draw_prob * 100, away_prob * 100]
-        return matriceGoalDistrib
-
+        return matriceGoalDistrib.sort(compareProbScore)
     }
+}
 
-    show_distrib() {
-        console.log("local: ", homeDistrib, "visitor: ", awayDistrib);
+
+function compareProbScore(a, b) {
+    a = a['prob']
+    b = b['prob']
+    if (a > b) {
+        return -1
+    } if (a < b) {
+        return 1
     }
+    return 0
+}
+
+
+function fact(nbr) {
+    var i, nbr, f = 1;
+    for (i = 1; i <= nbr; i++) {
+        f = f * i;   // ou f *= i;
+    }
+    return f;
 }
 
 
