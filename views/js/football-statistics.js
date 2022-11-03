@@ -26,11 +26,19 @@ const init = async () => {
     console.log(game);
 
 
+    let openHome = game[0]['odds'][0]['open']
+    let openDraw = game[0]['odds'][1]['open']
+    let openAway = game[0]['odds'][2]['open']
+
+    let lastHome = game[0]['odds'][0]['last']
+    let lastDraw = game[0]['odds'][1]['last']
+    let lastAway = game[0]['odds'][2]['last']
+
     createTable(
         ['Odds', 'Home', 'Draw', 'Away'], 
         [
-            ['Open', game[0]['odds'][0]['open'], game[0]['odds'][1]['open'], game[0]['odds'][2]['open']],
-            ['Last', game[0]['odds'][0]['last'], game[0]['odds'][1]['last'], game[0]['odds'][2]['last']]
+            ['Open', openHome, openDraw, openAway],
+            ['Last', lastHome, lastDraw, lastAway]
         ],
         tablePredictions
     )
@@ -90,9 +98,15 @@ const init = async () => {
             const game = gamesHomeSort[index]
             if (typeof game !== "function" && game['xg'] !== undefined && moment.unix(game['startTime']).isBefore(date)) {
                 if (game['homeTeam']['id'] === homeId) {
-                    tabHistHome.push(game['xg']['home'] / game['xg']['away'])
+                    console.log(game['homeTeam']['name']);
+                    if (game['xg']['home'] / game['xg']['away'] < 100) {
+                        tabHistHome.push(game['xg']['home'] / game['xg']['away'])
+                    }
                 } else {
-                    tabHistHome.push(game['xg']['away'] / game['xg']['home'])
+                    console.log(game['awayTeam']['name']);
+                    if (game['xg']['away'] / game['xg']['home'] < 100) {
+                        tabHistHome.push(game['xg']['away'] / game['xg']['home'])
+                    }
                 }
             }
         }
@@ -107,10 +121,14 @@ const init = async () => {
                 
                 if (game['homeTeam']['id'] === awayId) {
                     console.log(game['homeTeam']['name']);
-                    tabHistAway.push(game['xg']['home'] / game['xg']['away'])
+                    if (game['xg']['home'] / game['xg']['away'] < 100) {
+                        tabHistAway.push(game['xg']['home'] / game['xg']['away'])
+                    }
                 } else {
                     console.log(game['awayTeam']['name']);
-                    tabHistAway.push(game['xg']['away'] / game['xg']['home'])
+                    if (game['xg']['away'] / game['xg']['home'] < 100) {
+                        tabHistAway.push(game['xg']['away'] / game['xg']['home'])
+                    }
                 }
             }
         }
@@ -119,23 +137,63 @@ const init = async () => {
     }
 
     let tabEmaHisto = []
+    let tabOpenEmaDrop = []
+    let tabProbGame = []
 
     for (let i = 0; i < EMA_GAMES_TAB.length; i++) {
         try {
             let periode = EMA_GAMES_TAB[i]
+            let emaHome = ToolsAverage.ema(tabHistHome, periode)
+            let emaAway = ToolsAverage.ema(tabHistAway, periode)
+
             tabEmaHisto.push([
                 `${periode}`,
-                ToolsAverage.ema(tabHistHome, periode).round(2),
-                ToolsAverage.ema(tabHistAway, periode).round(2)
+                emaHome.round(2),
+                emaAway.round(2)
+            ])
+
+            let prob = Poisson.getProba(emaHome, emaAway, 25)
+
+            tabProbGame.push([
+                `${periode}`,
+                (prob['home']*100).round(1),
+                (prob['draw']*100).round(1),
+                (prob['away']*100).round(1)
+            ])
+
+            let oddsHome = Odds.proToOdds(prob['home'])
+            let oddsDraw = Odds.proToOdds(prob['draw'])
+            let oddsAway = Odds.proToOdds(prob['away'])
+
+            let openDropHome = Odds.drop(openHome, oddsHome)
+            let openDropDraw = Odds.drop(openDraw, oddsDraw)
+            let openDropAway = Odds.drop(openAway, oddsAway)
+
+            tabOpenEmaDrop.push([
+                `${periode}`,
+                openDropHome.round(2),
+                openDropDraw.round(2),
+                openDropAway.round(2)
             ])
         } catch (e) {
             console.log(e);
         }
     }
 
+    createTable(
+        ['Xg probability', 'Home', 'Draw', 'Away'],
+        tabProbGame,
+        tablePredictions
+    )
 
     createTable(
-        ['Periode EMA', 'Home', 'Away'],
+        ['Open drop', 'Home', 'Draw', 'Away'],
+        tabOpenEmaDrop,
+        tablePredictions
+    )
+
+    createTable(
+        ['Average xg', 'Home', 'Away'],
         tabEmaHisto,
         tablePredictions
     )
