@@ -111,9 +111,10 @@ class Poisson {
         }
     }
 
-    static getGoal(homeExpGoal, awayExpGoal, maxGoalDist) {
+    static getGoal(homeExpGoal, awayExpGoal, maxGoalDist, maxGoalView) {
         this.init(homeExpGoal, awayExpGoal, maxGoalDist)
-        return [this.homeDistrib, this.awayDistrib]
+        maxGoalView ? null : maxGoalView = 5
+        return [this.homeDistrib.slice(0, maxGoalView), this.awayDistrib.slice(0, maxGoalView)]
     }
 
     static getProba(homeExpGoal, awayExpGoal, maxGoalDist) {
