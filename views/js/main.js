@@ -43,18 +43,47 @@ Array.prototype.max = function () {
 }
 
 
+/*
+let tableTest = document.getElementById('tableTest')
+
+let titleEvolve  = {value: "header", balise:[{name: "style", value:"color: blue; opacity: 0.65;"}, {name: "class", value:"bg-warning fw-bold"}]}
+let celEvolve  = {value: "1", balise:[{name: "style", value:"color: blue; opacity: 0.45;"}, {name: "class", value:"bg-warning fw-bold"}]}
+
+createTable(
+    ['Title', 'Test', titleEvolve],
+    [
+        ['row', celEvolve, 'un']
+    ],
+    tableTest
+)
+*/
+
 function createTable(titles, values, node) {
     let table = document.createElement('table')
     table.setAttribute('class', 'table')
     let thead = document.createElement('thead')
     let trH = document.createElement('tr')
     titles.forEach(title => {
-        let th = document.createElement('th')
-        th.setAttribute('scope', 'col')
-        //th.setAttribute('style')
-        let txt = document.createTextNode(title)
-        th.appendChild(txt)
-        trH.appendChild(th)
+        if (typeof title !== "object") {
+            let th = document.createElement('th')
+            th.setAttribute('scope', 'col')
+            //th.setAttribute('style')
+            let txt = document.createTextNode(title)
+            th.appendChild(txt)
+            trH.appendChild(th)
+        } else {
+            let valueCel = title['value']
+            let balises = title['balise']
+            let th = document.createElement('th')
+            th.setAttribute('scope', 'col')
+            for(const indexBal in balises) {
+                let balise = balises[indexBal]
+                th.setAttribute(balise['name'], balise['value'])
+            }
+            let txt = document.createTextNode(valueCel)
+            th.appendChild(txt)
+            trH.appendChild(th)
+        }        
     })
     thead.appendChild(trH)
     table.appendChild(thead)
@@ -62,17 +91,42 @@ function createTable(titles, values, node) {
     values.forEach(ligne => {
         let trB = document.createElement('tr')
         ligne.forEach((value, index) => {
-            if (index === 0) {
-                let th = document.createElement('th')
-                th.setAttribute('scope', 'row')
-                let txt = document.createTextNode(value)
-                th.appendChild(txt)
-                trB.appendChild(th)
+            if (typeof value !== "object") {
+                if (index === 0) {
+                    let th = document.createElement('th')
+                    th.setAttribute('scope', 'row')
+                    let txt = document.createTextNode(value)
+                    th.appendChild(txt)
+                    trB.appendChild(th)
+                } else {
+                    let td = document.createElement('td')
+                    let txt = document.createTextNode(value)
+                    td.appendChild(txt)
+                    trB.appendChild(td)
+                }
             } else {
-                let td = document.createElement('td')
-                let txt = document.createTextNode(value)
-                td.appendChild(txt)
-                trB.appendChild(td)
+                let valueCel = value['value']
+                let balises = value['balise']
+                if (index === 0) {
+                    let th = document.createElement('th')
+                    th.setAttribute('scope', 'row')
+                    for(const indexBal in balises) {
+                        let balise = balises[indexBal]
+                        th.setAttribute(balise['name'], balise['value'])
+                    }
+                    let txt = document.createTextNode(valueCel)
+                    th.appendChild(txt)
+                    trB.appendChild(th)
+                } else {
+                    let td = document.createElement('td')
+                    for(const indexBal in balises) {
+                        let balise = balises[indexBal]
+                        td.setAttribute(balise['name'], balise['value'])
+                    }
+                    let txt = document.createTextNode(valueCel)
+                    td.appendChild(txt)
+                    trB.appendChild(td)
+                }
             }
         })
         tbody.appendChild(trB)
