@@ -1,29 +1,3 @@
-/*Number.prototype.round = function (decimal) {
-    let prod = 100
-    switch (decimal) {
-        case 0:
-            prod = 1
-            break;
-        case 1:
-            prod = 10
-            break;
-        case 2:
-            prod = 100
-            break;
-        case 3:
-            prod = 1000
-            break;
-        case 4:
-            prod = 10000
-            break;
-
-        default:
-            prod = 100
-            break;
-    }
-    return Math.round(this * prod) / prod
-}*/
-
 Number.prototype.round = function (decimal) {
     decimal === undefined ? decimal = 2 : null
     prod = '1'
