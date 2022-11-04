@@ -313,7 +313,7 @@ console.log(res);
 
 
 
-function compareLeague(a, b) {
+function compareTournament(a, b) {
     a = a['tournament']['id']
     b = b['tournament']['id']
     if (a < b) {
@@ -383,7 +383,7 @@ countryId = null
 countryName = null
 
 for(const indexCountry in tabcountry) {
-    country = tabcountry[indexCountry]['tabcountryTmp'].sort(compareLeague)
+    country = tabcountry[indexCountry]['tabcountryTmp'].sort(compareTournament)
 
     countryId = country[0]['country']['id']
     countryName = country[0]['country']['name']
