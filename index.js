@@ -185,7 +185,6 @@ app.get('/api/football-statistics/seasons-by-tournament/:idTournament', async (r
     res.send(seasons)
 })
 
-
 app.get('/api/football-statistics/fixtures-by-season/:idSeason', async (req, res) => {
     const { idSeason } = req.params
     const fixtures = await footballStatistics.getFixturesBySeason(idSeason)
@@ -200,7 +199,7 @@ app.get('/api/football-statistics/insert-fixtures-by-season/:idSeason', async (r
 
 app.get('/api/football-statistics/games-by-date/:strDate?', async (req, res) => {
     let { strDate } = req.params
-    if (strDate === undefined) strDate = moment().format('YYYY-MM-DD')
+    strDate === undefined ? strDate = moment().format('YYYY-MM-DD') : strDate = moment(strDate).format('YYYY-MM-DD')
     const games = await footballStatistics.getByDate(strDate)
     res.send(games)
 })
@@ -267,9 +266,10 @@ app.get('/api/football-statistics/xg-actual-by-team/:idTeam/:dateTime?', async (
 
 app.get('/football-statistics/games-by-date/:strDate?', async (req, res) => {
     let { strDate } = req.params
-    if (strDate === undefined) strDate = moment().format('YYYY-MM-DD')
+    strDate === undefined ? strDate = moment().format('YYYY-MM-DD') : strDate = moment(strDate).format('YYYY-MM-DD')
     const games = await footballStatistics.getByDate(strDate)
-    res.render('football-statistics.games-by-date.ejs', {games})
+    header = moment(strDate).format('ll')
+    res.render('football-statistics.games-by-date.ejs', {games, header})
 })
 
 app.get('/football-statistics/games-by-id/:idGame', async (req, res) => {

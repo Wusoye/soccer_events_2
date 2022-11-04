@@ -116,70 +116,122 @@ class FootballStatistics {
 
     async getByDate(strDate) {
         try {
-            strDate = this.moment(strDate)
-            const query = {}
-            const sort = { "country.name": 1 }
-            const resFind = await this.MongoQuery.sort(this.DATABASE, this.COLLECTION, query, sort)
-            let games = []
-            for (const index in resFind) {
-                const game = resFind[index]
-                const dateGame = this.moment.unix(game['startTime'])
-                if (this.moment(strDate).isSame(dateGame, 'day')) {
-                    games.push(game)
-                }
-            }
-
-            function compareCountry(a, b) {
-                if (a['country']['name'] < b['country']['name']) {
-                    return -1;
-                }
-                if (a['country']['name'] > b['country']['name']) {
-                    return 1;
-                }
-                return 0;
-            }
-
+            let minDate = this.moment(strDate).unix()
+            let maxDate = this.moment(strDate).add('24', 'hours').unix()
+            
+            const query = { $and: [ { "startTime": { $gt: minDate } }, { "startTime": { $lt: maxDate } } ] }
+            const resFind = await this.MongoQuery.find(this.DATABASE, this.COLLECTION, query)
 
             function compareTournament(a, b) {
-                if (a['tournament']['name'] < b['tournament']['name']) {
-                    return -1;
+                a = a['tournament']['id']
+                b = b['tournament']['id']
+                if (a < b) {
+                    return -1
                 }
-                if (a['tournament']['name'] > b['tournament']['name']) {
-                    return 1;
+                if (a > b) {
+                    return 1
                 }
-                return 0;
+                return 0
+            }
+            
+            
+            function compareCountry(a, b) {
+                a = a['country']['name']
+                b = b['country']['name']
+                if (a < b) {
+                    return -1
+                }
+                if (a > b) {
+                    return 1
+                }
+                return 0
+            }
+            
+            function compareDate(a, b){
+                let moment = require('../config/moment');
+                a = moment.unix(a['startTime'])
+                b = moment.unix(b['startTime'])
+                if (moment(a).isBefore(b)) {
+                    return -1
+                }
+                if (moment(a).isAfter(b)) {
+                    return 1
+                }
+                return 0
             }
 
-
-            games = games.sort(compareCountry)
-
-            let countryIdTmp = null
-            let countryGames = {}
-            let countryGameTmp = []
+            let as = resFind.sort(compareCountry)
+            
+            let countryId = null
             let countryName = null
-
-            for(const gameIndex in games) {
-                const game = games[gameIndex]
-                if (typeof game !== "function") {
-                    const countryId = game['country']['id']
-                    if (countryId === countryIdTmp || countryIdTmp === null) {
-                        countryName = game['country']['name']
+            let countryIdTmp = null
+            let countryNameTmp = null
+            let tabcountry = []
+            let tabcountryTmp = []
+            
+            for(const indexA in as) {
+                let a = as[indexA]
+                if (a['country'] !== undefined) {
+                    countryId = a['country']['id']
+                    countryName = a['country']['name']
+                    if (countryIdTmp === null || countryIdTmp !== countryId) {
+                        countryIdTmp !== null ? tabcountry.push({country: {id: countryIdTmp, name: countryNameTmp}, tabcountryTmp}) : null
+                        tabcountryTmp = []
+                        tabcountryTmp.push(a)
                         countryIdTmp = countryId
-                        countryGameTmp.push(game)
+                        countryNameTmp = countryName
                     } else {
-                        //countryGames.push({[countryName]: countryGameTmp})
-                        countryGames = {...countryGames, [countryName]: countryGameTmp}
-                        countryGameTmp = []
-                        countryName = game['country']['name']
+                        tabcountryTmp.push(a)
                         countryIdTmp = countryId
-                        countryGameTmp.push(game)
+                        countryIdTmp = countryId
                     }
                 }
             }
+            
+            tabcountry.push({country: {id: countryIdTmp, name: countryNameTmp}, tabcountryTmp})
+            
+            let res = []
+            countryId = null
+            countryName = null
+            
+            for(const indexCountry in tabcountry) {
+                if (tabcountry[indexCountry]['tabcountryTmp'] !== undefined) {
+                    let country = tabcountry[indexCountry]['tabcountryTmp'].sort(compareTournament)
+            
+                    countryId = country[0]['country']['id']
+                    countryName = country[0]['country']['name']
+                
+                    let leagueIdTmp = null
+                    let leagueId = null
+                    let leagueNameTmp = null
+                    let leagueName = null
+                    let tableague = []
+                    let tableagueTmp = []
+                
+                    for(const indexA in country) {
+                        let a = country[indexA]
+                        if (a['tournament'] !== undefined) {
+                            leagueId = a['tournament']['id']
+                            leagueName = a['tournament']['name']
+                            if (leagueIdTmp === null || leagueIdTmp !== leagueId) {
+                                leagueIdTmp !== null ? tableague.push({tournament: {id: leagueIdTmp, name: leagueNameTmp}, games: tableagueTmp.sort(compareDate)}) : null
+                                tableagueTmp = []
+                                tableagueTmp.push(a)
+                                leagueIdTmp = leagueId
+                                leagueNameTmp = leagueName
+                            } else {
+                                tableagueTmp.push(a)
+                                leagueIdTmp = leagueId
+                                leagueNameTmp = leagueName
+                            }
+                        }
+                    }
+                    tableague.push({tournament: {id: leagueIdTmp, name: leagueNameTmp}, games: tableagueTmp.sort(compareDate)})
+                    res.push({country: {id: countryId, name: countryName}, tournaments: tableague})
+                }
+            }
 
-            countryGames = {...countryGames, [countryName]: countryGameTmp}
-
-            return countryGames
+            return res
         } catch (e) {
             console.log(e);
         }

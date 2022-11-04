@@ -3,11 +3,17 @@
 
     <% 
 
-        Object.keys(games).forEach(key => {
+        games.forEach(country => {
 
     %>
 
-    <h1 class="display-4 mt-3"><%= key %></h1>
+    <h1 class="display-4 mt-3"><%= country['country']['name'] %></h1>
+
+    <%
+
+        country['tournaments'].forEach(tournament => {
+
+    %>
 
     <table class="table">
         <thead>
@@ -21,15 +27,16 @@
             </tr>
         </thead>
         <tbody>
+
             <%
 
-                games[key].forEach(game => {
+                tournament['games'].forEach(game => {
             
             %>
 
             <tr>
                 <th scope="row"><%= moment.unix(game['startTime']).format('lll') %></th>
-                <td><%= game['tournament']['name'] %></td>
+                <td><%= tournament['tournament']['name'] %></td>
                 <td><%= game['homeTeam']['name'] %> - <%= game['awayTeam']['name'] %></td>
                 <td><%= game['status'] %></td>
                 <td><%= game['homeScore'] ? game['homeScore']['final'] : '' %> - <%= game['awayScore'] ? game['awayScore']['final'] : '' %></td>
@@ -47,6 +54,7 @@
 
     <%
             
+        });
         });
         
     %> 
