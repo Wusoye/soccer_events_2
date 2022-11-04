@@ -89,6 +89,12 @@ class Odds {
     static proToOdds(proba) {
         return 1 / proba
     }
+    static oddsToPer(odds) {
+        return 1 / odds * 100
+    }
+    static oddsToPro(odds) {
+        return 1 / odds
+    }
     static drop(start, end) {
         return ((start - end)/(end - 1)*100)
     }
