@@ -42,19 +42,30 @@ Array.prototype.max = function () {
     return Math.max(...this)
 }
 
-
 /*
-let tableTest = document.getElementById('tableTest')
+let classTitle = {name: "class", value: "font-monospace fst-italic"}
 
-let titleEvolve  = {value: "header", balise:[{name: "style", value:"color: blue; opacity: 0.65;"}, {name: "class", value:"bg-warning fw-bold"}]}
-let celEvolve  = {value: "1", balise:[{name: "style", value:"color: blue; opacity: 0.45;"}, {name: "class", value:"bg-warning fw-bold"}]}
+let styleRow = {name: "style", value: "color: green; opacity: 0.75;"}
+let classRow = {name: "class", value: "fw-light"}
+
+let titleTab = [
+    {value: 'Title', balise: [classTitle]},
+    {value: 'Test', balise: [classTitle]},
+    {value: 'header', balise: [classTitle]}
+]
+
+let rowTab = [
+    [
+        {value: 'row', balise: [styleRow]},
+        {value: 1, balise: [styleRow, classRow]},
+        {value: 'un', balise: [styleRow, classRow]}
+    ]
+]
 
 createTable(
-    ['Title', 'Test', titleEvolve],
-    [
-        ['row', celEvolve, 'un']
-    ],
-    tableTest
+    titleTab,
+    rowTab,
+    "tableTest"
 )
 */
 
@@ -132,7 +143,11 @@ function createTable(titles, values, node) {
         tbody.appendChild(trB)
     })
     table.appendChild(tbody)
-    node.appendChild(table)
+    if (typeof node === "string") {
+        document.getElementById(node).appendChild(table)
+    } else {
+        node.appendChild(table)
+    }
 }
 
 
