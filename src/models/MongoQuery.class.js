@@ -57,7 +57,6 @@ class MongoQuery {
                 new Error('Attention condition de supression vide !!')
             } else {
                 const res = await collection.deleteMany(query);
-                console.log(res);
                 return res
             }          
             

@@ -41,6 +41,40 @@ class FootballStatistics {
         } while (currentDate - date < milliseconds);
     }
 
+    async insertFixtures() {
+        try {
+            let res = []
+            let URL = this.URL_API + 'countries/'
+            const countries = await this.Fetch.get('GET', URL, {}, this.HEADERS_API_FOOTBALL_STATISTICS)
+            let tabCountries = countries['data']['result']
+            for(const indexCountries in tabCountries) {
+                let countrie = tabCountries[indexCountries]
+                if (typeof countrie !== 'function') {
+                    URL = this.URL_API + 'countries/' + countrie['id'] + '/tournaments/'
+                    const tournaments = await this.Fetch.get('GET', URL, {}, this.HEADERS_API_FOOTBALL_STATISTICS)
+                    let tabTournaments = tournaments['data']['result']
+                    for(const indexTournaments in tabTournaments) {
+                        let tournament = tabTournaments[indexTournaments]
+                        if (typeof tournament !== 'function') {
+                            URL = this.URL_API + 'tournaments/' + tournament['id'] + '/seasons/'
+                            const seasons = await this.Fetch.get('GET', URL, {}, this.HEADERS_API_FOOTBALL_STATISTICS)
+                            let tabSeasons = seasons['data']['result']
+                            for(const indexSeasons in tabSeasons) {
+                                let season = tabSeasons[indexSeasons]
+                                if (typeof tournament !== 'function') {
+                                    res.push(this.insertFixturesBySeason(season['id'], true))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return 'ok'
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
     async getCountries() {
         try {
             const URL = this.URL_API + 'countries/'
@@ -81,8 +115,10 @@ class FootballStatistics {
         }
     }
 
-    async insertFixturesBySeason(idSeason) {
+    async insertFixturesBySeason(idSeason, _force) {
         try {
+            let cpt = 0
+            typeof _force === "boolean" ? null : _force = false
             const URL = this.URL_API + 'seasons/' + idSeason + '/fixtures/'
             const response = await this.Fetch.get('GET', URL, {}, this.HEADERS_API_FOOTBALL_STATISTICS)
             const fixtures = response['data']['result']
@@ -96,19 +132,144 @@ class FootballStatistics {
                         //console.log(resFind);
                         //console.log('insert');
                         await this.MongoQuery.insert(this.DATABASE, this.COLLECTION, fixture)
-                    } else if (resFind.length === 1 && resFind[0]['homeScore'] === undefined && fixture['homeScore'] !== undefined) {
+                    } else if ((resFind.length === 1 && resFind[0]['homeScore'] === undefined && fixture['homeScore'] !== undefined) || _force) {
                         //console.log(resFind);
                         //console.log('update');
                         await this.MongoQuery.delete(this.DATABASE, this.COLLECTION, query)
                         await this.MongoQuery.insert(this.DATABASE, this.COLLECTION, fixture)
+                        cpt++
                     } else {
                         //console.log(resFind);
                         //console.log('none');
                     }
                 }
             }
+            console.log(cpt);
             console.log('Insert completed !!');
             return response['data']
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    async getBigOdds(odds) {
+        try {
+            odds = parseFloat(odds)
+            const query = { "odds.open": { $gt: odds }}
+            const resFind = await this.MongoQuery.find(this.DATABASE, this.COLLECTION, query)
+
+            function compareTournament(a, b) {
+                a = a['tournament']['id']
+                b = b['tournament']['id']
+                if (a < b) {
+                    return -1
+                }
+                if (a > b) {
+                    return 1
+                }
+                return 0
+            }
+            
+            
+            function compareCountry(a, b) {
+                a = a['country']['name']
+                b = b['country']['name']
+                if (a < b) {
+                    return -1
+                }
+                if (a > b) {
+                    return 1
+                }
+                return 0
+            }
+            
+            function compareDate(a, b){
+                let moment = require('../config/moment');
+                a = moment.unix(a['startTime'])
+                b = moment.unix(b['startTime'])
+                if (moment(a).isBefore(b)) {
+                    return -1
+                }
+                if (moment(a).isAfter(b)) {
+                    return 1
+                }
+                return 0
+            }
+
+            let as = resFind.sort(compareCountry)
+            
+            let countryId = null
+            let countryName = null
+            let countryIdTmp = null
+            let countryNameTmp = null
+            let tabcountry = []
+            let tabcountryTmp = []
+            
+            for(const indexA in as) {
+                let a = as[indexA]
+                if (a['country'] !== undefined) {
+                    countryId = a['country']['id']
+                    countryName = a['country']['name']
+                    if (countryIdTmp === null || countryIdTmp !== countryId) {
+                        countryIdTmp !== null ? tabcountry.push({country: {id: countryIdTmp, name: countryNameTmp}, tabcountryTmp}) : null
+                        tabcountryTmp = []
+                        tabcountryTmp.push(a)
+                        countryIdTmp = countryId
+                        countryNameTmp = countryName
+                    } else {
+                        tabcountryTmp.push(a)
+                        countryIdTmp = countryId
+                        countryIdTmp = countryId
+                    }
+                }
+            }
+            
+            tabcountry.push({country: {id: countryIdTmp, name: countryNameTmp}, tabcountryTmp})
+            
+            let res = []
+            countryId = null
+            countryName = null
+            
+            for(const indexCountry in tabcountry) {
+                if (tabcountry[indexCountry]['tabcountryTmp'] !== undefined) {
+                    let country = tabcountry[indexCountry]['tabcountryTmp'].sort(compareTournament)
+            
+                    if (country[0] !== undefined) {
+                        countryId = country[0]['country']['id']
+                        countryName = country[0]['country']['name']
+                    
+                        let leagueIdTmp = null
+                        let leagueId = null
+                        let leagueNameTmp = null
+                        let leagueName = null
+                        let tableague = []
+                        let tableagueTmp = []
+                    
+                        for(const indexA in country) {
+                            let a = country[indexA]
+                            if (a['tournament'] !== undefined) {
+                                leagueId = a['tournament']['id']
+                                leagueName = a['tournament']['name']
+                                if (leagueIdTmp === null || leagueIdTmp !== leagueId) {
+                                    leagueIdTmp !== null ? tableague.push({tournament: {id: leagueIdTmp, name: leagueNameTmp}, games: tableagueTmp.sort(compareDate)}) : null
+                                    tableagueTmp = []
+                                    tableagueTmp.push(a)
+                                    leagueIdTmp = leagueId
+                                    leagueNameTmp = leagueName
+                                } else {
+                                    tableagueTmp.push(a)
+                                    leagueIdTmp = leagueId
+                                    leagueNameTmp = leagueName
+                                }
+                            }
+                        }
+                        tableague.push({tournament: {id: leagueIdTmp, name: leagueNameTmp}, games: tableagueTmp.sort(compareDate)})
+                        res.push({country: {id: countryId, name: countryName}, tournaments: tableague})
+                    }
+                }
+            }
+
+            return res
         } catch (e) {
             console.log(e);
         }
@@ -198,36 +359,38 @@ class FootballStatistics {
                 if (tabcountry[indexCountry]['tabcountryTmp'] !== undefined) {
                     let country = tabcountry[indexCountry]['tabcountryTmp'].sort(compareTournament)
             
-                    countryId = country[0]['country']['id']
-                    countryName = country[0]['country']['name']
-                
-                    let leagueIdTmp = null
-                    let leagueId = null
-                    let leagueNameTmp = null
-                    let leagueName = null
-                    let tableague = []
-                    let tableagueTmp = []
-                
-                    for(const indexA in country) {
-                        let a = country[indexA]
-                        if (a['tournament'] !== undefined) {
-                            leagueId = a['tournament']['id']
-                            leagueName = a['tournament']['name']
-                            if (leagueIdTmp === null || leagueIdTmp !== leagueId) {
-                                leagueIdTmp !== null ? tableague.push({tournament: {id: leagueIdTmp, name: leagueNameTmp}, games: tableagueTmp.sort(compareDate)}) : null
-                                tableagueTmp = []
-                                tableagueTmp.push(a)
-                                leagueIdTmp = leagueId
-                                leagueNameTmp = leagueName
-                            } else {
-                                tableagueTmp.push(a)
-                                leagueIdTmp = leagueId
-                                leagueNameTmp = leagueName
+                    if (country[0] !== undefined) {
+                        countryId = country[0]['country']['id']
+                        countryName = country[0]['country']['name']
+                    
+                        let leagueIdTmp = null
+                        let leagueId = null
+                        let leagueNameTmp = null
+                        let leagueName = null
+                        let tableague = []
+                        let tableagueTmp = []
+                    
+                        for(const indexA in country) {
+                            let a = country[indexA]
+                            if (a['tournament'] !== undefined) {
+                                leagueId = a['tournament']['id']
+                                leagueName = a['tournament']['name']
+                                if (leagueIdTmp === null || leagueIdTmp !== leagueId) {
+                                    leagueIdTmp !== null ? tableague.push({tournament: {id: leagueIdTmp, name: leagueNameTmp}, games: tableagueTmp.sort(compareDate)}) : null
+                                    tableagueTmp = []
+                                    tableagueTmp.push(a)
+                                    leagueIdTmp = leagueId
+                                    leagueNameTmp = leagueName
+                                } else {
+                                    tableagueTmp.push(a)
+                                    leagueIdTmp = leagueId
+                                    leagueNameTmp = leagueName
+                                }
                             }
                         }
+                        tableague.push({tournament: {id: leagueIdTmp, name: leagueNameTmp}, games: tableagueTmp.sort(compareDate)})
+                        res.push({country: {id: countryId, name: countryName}, tournaments: tableague})
                     }
-                    tableague.push({tournament: {id: leagueIdTmp, name: leagueNameTmp}, games: tableagueTmp.sort(compareDate)})
-                    res.push({country: {id: countryId, name: countryName}, tournaments: tableague})
                 }
             }
 
@@ -253,6 +416,19 @@ class FootballStatistics {
         try {
             idTeam = parseInt(idTeam)
             const query = { $or: [{ "homeTeam.id": idTeam }, { "awayTeam.id": idTeam }] }
+            const sort = { "startTime": 1 }
+            const resFind = await this.MongoQuery.sort(this.DATABASE, this.COLLECTION, query, sort)
+            return resFind
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    async getH2H(idHome, idAway) {
+        try {
+            idHome = parseInt(idHome)
+            idAway = parseInt(idAway)
+            const query = { $or: [{$and: [{ "homeTeam.id": idHome }, { "awayTeam.id": idAway }]}, {$and: [{ "homeTeam.id": idAway }, { "awayTeam.id": idHome }]}] }
             const sort = { "startTime": 1 }
             const resFind = await this.MongoQuery.sort(this.DATABASE, this.COLLECTION, query, sort)
             return resFind

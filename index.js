@@ -191,9 +191,15 @@ app.get('/api/football-statistics/fixtures-by-season/:idSeason', async (req, res
     res.send(fixtures)
 })
 
-app.get('/api/football-statistics/insert-fixtures-by-season/:idSeason', async (req, res) => {
-    const { idSeason } = req.params
-    const fixtures = await footballStatistics.insertFixturesBySeason(idSeason)
+app.get('/api/football-statistics/insert-fixtures-by-season/:idSeason/:_force?', async (req, res) => {
+    let { idSeason, _force } = req.params
+    _force = (_force === 'true')
+    const fixtures = await footballStatistics.insertFixturesBySeason(idSeason, _force)
+    res.send(fixtures)
+})
+
+app.get('/api/football-statistics/insert-fixtures/', async (req, res) => {
+    const fixtures = await footballStatistics.insertFixtures()
     res.send(fixtures)
 })
 
@@ -213,6 +219,12 @@ app.get('/api/football-statistics/games-by-id/:idGame', async (req, res) => {
 app.get('/api/football-statistics/games-by-team/:idTeam', async (req, res) => {
     let { idTeam } = req.params
     const games = await footballStatistics.getByTeam(idTeam)
+    res.send(games)
+})
+
+app.get('/api/football-statistics/games-H2H/:idHome/:idAway', async (req, res) => {
+    let { idHome, idAway } = req.params
+    const games = await footballStatistics.getH2H(idHome, idAway)
     res.send(games)
 })
 
@@ -268,6 +280,7 @@ app.get('/football-statistics/games-by-date/:strDate?', async (req, res) => {
     let { strDate } = req.params
     strDate === undefined ? strDate = moment().format('YYYY-MM-DD') : strDate = moment(strDate).format('YYYY-MM-DD')
     const games = await footballStatistics.getByDate(strDate)
+    //const games = await footballStatistics.getBigOdds(5)
     header = moment(strDate).format('ll')
     res.render('football-statistics.games-by-date.ejs', {games, header})
 })
@@ -275,7 +288,7 @@ app.get('/football-statistics/games-by-date/:strDate?', async (req, res) => {
 app.get('/football-statistics/games-by-id/:idGame', async (req, res) => {
     let { idGame } = req.params
     const game = await footballStatistics.getById(idGame)
-    header = game[0]['homeTeam']['name'] + ' - ' + game[0]['awayTeam']['name']
+    header = game[0]['homeTeam']['name'] + ' - ' + game[0]['awayTeam']['name'] + ' | ' + moment.unix(game[0]['startTime']).format('lll')
     res.render('football-statistics.games-by-id.ejs', {game: game[0], header})
 })
 
