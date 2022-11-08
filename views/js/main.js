@@ -362,18 +362,19 @@ class Row {
         }
     }
 
+
     getCells(target) {
         if (typeof target === "number") {
             return this.cells[target]
         }
         if (typeof target === "string") {
-            let cpt = 0
-            this.cells.forEach(cells => {
-                if (cells.value === target) {
-                    return this.cells[cpt]
+            let nice 
+            this.cells.forEach(_cells => {
+                if (_cells['value'] === target) {
+                    nice = _cells
                 }
-                cpt++
             })
+            return nice || this.cells
         }
         return this.cells
     }
@@ -416,11 +417,13 @@ class Head {
             return this.cells[target]
         }
         if (typeof target === "string") {
-            this.cells.forEach(cells => {
-                if (cells.value === target) {
-                    return cells
+            let nice 
+            this.cells.forEach(_cells => {
+                if (_cells['value'] === target) {
+                    nice = _cells
                 }
             })
+            return nice || this.cells
         }
         return this.cells
     }
