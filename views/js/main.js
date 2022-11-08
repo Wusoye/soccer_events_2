@@ -591,6 +591,24 @@ class Table {
             node.appendChild(table)
         }
     }
+
+    delete(node) {
+        this.head = new Head()
+        this.row = []
+        this.attributesTable = {}
+        this.attributesBody = {}
+        if (typeof node === "string") {
+            let element = document.getElementById(node);
+            while (element.firstChild) {
+                element.removeChild(element.firstChild);
+            }
+        } else {
+            let element = node;
+            while (element.firstChild) {
+                element.removeChild(element.firstChild);
+            }
+        }
+    }
 }
 
 
