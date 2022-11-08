@@ -336,9 +336,11 @@ class Cells {
         let attributes = this.attributesCells
         if (attributes[type]) {
             attributes[type] = attributes[type] + ' ' + value
+            return this
         } else 
         if (type) {
             attributes[type] = value
+            return this
         }
     }
 }
@@ -384,9 +386,11 @@ class Row {
         let attributes = this.attributesRow
         if (attributes[type]) {
             attributes[type] = attributes[type] + ' ' + value
+            return this
         } else 
         if (type) {
             attributes[type] = value
+            return this
         }
     }
 }
@@ -433,9 +437,11 @@ class Head {
         let attributes = this.attributesHead
         if (attributes[type]) {
             attributes[type] = attributes[type] + ' ' + value
+            return this
         } else 
         if (type) {
             attributes[type] = value
+            return this
         }
     }
 }
@@ -455,9 +461,11 @@ class Table {
         let attributes = this.attributesTable
         if (attributes[type]) {
             attributes[type] = attributes[type] + ' ' + value
+            return this
         } else 
         if (type) {
             attributes[type] = value
+            return this
         }
     }
 
@@ -466,9 +474,11 @@ class Table {
         let attributes = this.attributesBody
         if (attributes[type]) {
             attributes[type] = attributes[type] + ' ' + value
+            return this
         } else 
         if (type) {
             attributes[type] = value
+            return this
         }
     }
    

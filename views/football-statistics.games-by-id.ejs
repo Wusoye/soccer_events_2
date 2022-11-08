@@ -51,17 +51,6 @@
     </div>
 
 
-    <div class="row mt-4" id="graphGame" data="<%= game['id'] %>" style="min-height: 300px;">
-
-        <div class="col-6">
-            <svg id="graphHome" data="<%= game['homeTeam']['id'] %>" width="100%" height="100%"></svg>
-        </div>
-
-        <div class="col-6">
-            <svg id="graphAway" data="<%= game['awayTeam']['id'] %>" width="100%" height="100%"></svg>
-        </div>
-
-    </div>
 
 
 
@@ -108,6 +97,20 @@
 
 
     </div>
+
+
+    <div class="row mt-4" id="graphGame" data="<%= game['id'] %>" style="min-height: 300px;">
+
+        <div class="col-6">
+            <svg id="graphHome" data="<%= game['homeTeam']['id'] %>" width="100%" height="100%"></svg>
+        </div>
+
+        <div class="col-6">
+            <svg id="graphAway" data="<%= game['awayTeam']['id'] %>" width="100%" height="100%"></svg>
+        </div>
+
+    </div>
+
 
 
 </main>
