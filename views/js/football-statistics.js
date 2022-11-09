@@ -64,6 +64,9 @@ const setTabGame = (data, node) => {
 
     const PERIODE = 10
 
+    console.log(data['data']['emaHome']);
+    console.log(data['data']['emaHome'][PERIODE]);
+
     const tabEmaHome = data['data']['emaHome'][PERIODE]
     const tabEmaAway = data['data']['emaAway'][PERIODE]
     
@@ -79,239 +82,90 @@ const setTabGame = (data, node) => {
     const norAwayFor = tabEmaAway['norFor']
     const norAwayAga = tabEmaAway['norAga']
 
-    const poiEmaFor = Poisson.getProba(emaHomeFor, emaAwayFor, 25)
-    const poiEmaAga = Poisson.getProba(emaHomeAga, emaAwayAga, 25)
-
-    const poiNorFor = Poisson.getProba(norHomeFor, norAwayFor, 25)
-    const poiNorAga = Poisson.getProba(norHomeAga, norAwayAga, 25)
-
-    const oddsEmaForHome = Odds.proToOdds(poiEmaFor['home'])
-    const oddsEmaForDraw = Odds.proToOdds(poiEmaFor['draw'])
-    const oddsEmaForAway = Odds.proToOdds(poiEmaFor['away'])
-
-    const oddsNorForHome = Odds.proToOdds(poiNorFor['home'])
-    const oddsNorForDraw = Odds.proToOdds(poiNorFor['draw'])
-    const oddsNorForAway = Odds.proToOdds(poiNorFor['away'])    
-
-    const dropForHome = Odds.drop(oddsNorForHome, oddsEmaForHome)
-    const dropForDraw = Odds.drop(oddsNorForDraw, oddsEmaForDraw)
-    const dropForAway = Odds.drop(oddsNorForAway, oddsEmaForAway)
-
-    const dropOpenEmaForHome = Odds.drop(oddsNorForHome, ODDS['openHome'])
-    const dropOpenEmaForDraw = Odds.drop(oddsNorForDraw, ODDS['openDraw'])
-    const dropOpenEmaForAway = Odds.drop(oddsNorForAway, ODDS['openAway'])
-
-    const oddsEmaAgaHome = Odds.proToOdds(poiEmaAga['home'])
-    const oddsEmaAgaDraw = Odds.proToOdds(poiEmaAga['draw'])
-    const oddsEmaAgaAway = Odds.proToOdds(poiEmaAga['away'])
-
-    const oddsNorAgaHome = Odds.proToOdds(poiNorAga['home'])
-    const oddsNorAgaDraw = Odds.proToOdds(poiNorAga['draw'])
-    const oddsNorAgaAway = Odds.proToOdds(poiNorAga['away']) 
-
-    const dropAgaHome = Odds.drop(oddsNorAgaHome, oddsEmaAgaHome)
-    const dropAgaDraw = Odds.drop(oddsNorAgaDraw, oddsEmaAgaDraw)
-    const dropAgaAway = Odds.drop(oddsNorAgaAway, oddsEmaAgaAway)
-
-    const dropOpenEmaAgaHome = Odds.drop(oddsNorAgaHome, ODDS['openHome'])
-    const dropOpenEmaAgaDraw = Odds.drop(oddsNorAgaDraw, ODDS['openDraw'])
-    const dropOpenEmaAgaAway = Odds.drop(oddsNorAgaAway, ODDS['openAway'])
-
     
-    {emaHomeFor, emaHomeAga, emaAwayFor, emaAwayAga}
+    const potHomeFor = Poisson.getProba(emaHomeFor, 1/emaAwayAga, 25) // home => home
+    const potHomeAga = Poisson.getProba(1/emaHomeAga, emaAwayFor, 25)
 
-    const poiHomeFor = Poisson.getProba(emaHomeFor, emaAwayAga, 25)
-    const poiHomeAga = Poisson.getProba(emaHomeAga, emaAwayFor, 25)
+    const potAwayFor = Poisson.getProba(1/emaHomeAga, emaAwayFor, 25) // away => away
+    const potAwayAga = Poisson.getProba(emaHomeFor, 1/emaAwayAga, 25)
 
-    const oddsPoiHForHome = Odds.proToOdds(poiHomeFor['home'])
-    const oddsPoiHForDraw = Odds.proToOdds(poiHomeFor['draw'])
-    const oddsPoiHForAway = Odds.proToOdds(poiHomeFor['away'])
+    const tabPotHome = [potHomeFor['home'], potHomeAga['home']]
+    const tabPotDraw = [potHomeFor['draw'], potHomeAga['draw']]
+    const tabPotAway = [potHomeFor['away'], potHomeAga['away']]
 
-    const oddsPoiHAgaHome = Odds.proToOdds(poiHomeAga['home'])
-    const oddsPoiHAgaDraw = Odds.proToOdds(poiHomeAga['draw'])
-    const oddsPoiHAgaAway = Odds.proToOdds(poiHomeAga['away'])
+    const maxPotHome = tabPotHome.max()
+    const maxPotDraw = tabPotDraw.max()
+    const maxPotAway = tabPotAway.max()
 
-    const dropPovHomeFF = Odds.drop(oddsPoiHAgaAway, oddsPoiHForHome)
-    const dropPovHomeMM = Odds.drop(oddsPoiHAgaDraw, oddsPoiHForDraw)
-    const dropPovHomeAA = Odds.drop(oddsPoiHAgaHome, oddsPoiHForAway)
+    const oddsMaxPotHome = Odds.proToOdds(maxPotHome)
+    const oddsMaxPotDraw = Odds.proToOdds(maxPotDraw)
+    const oddsMaxPotAway = Odds.proToOdds(maxPotAway)
 
-    const dropPovAwayAA = Odds.drop(oddsPoiHForAway, oddsPoiHAgaHome)
-    const dropPovAwayMM = Odds.drop(oddsPoiHForDraw, oddsPoiHAgaDraw)
-    const dropPovAwayFF = Odds.drop(oddsPoiHForHome, oddsPoiHAgaAway)
+    const riseOddsOpenHome = Odds.drop(ODDS['openHome'], oddsMaxPotHome)
+    const riseOddsOpenDraw = Odds.drop(ODDS['openDraw'], oddsMaxPotDraw)
+    const riseOddsOpenAway = Odds.drop(ODDS['openAway'], oddsMaxPotAway)
 
-    console.log(oddsPoiHForHome);
-    console.log(oddsPoiHAgaAway);
+    const minPotHome = tabPotHome.min()
+    const minPotDraw = tabPotDraw.min()
+    const minPotAway = tabPotAway.min()
 
-    console.log(oddsPoiHForDraw);
-    console.log(oddsPoiHAgaDraw);
+    const oddsMinPotHome = Odds.proToOdds(minPotHome)
+    const oddsMinPotDraw = Odds.proToOdds(minPotDraw)
+    const oddsMinPotAway = Odds.proToOdds(minPotAway)
 
-    console.log(oddsPoiHForAway);
-    console.log(oddsPoiHAgaHome);
-
-
-
-    const rowPovHome = tabGame.setRow([
-        `POV HOME ${PERIODE}`,
-        dropPovHomeFF.round(1),
-        dropPovHomeMM.round(1),
-        dropPovHomeAA.round(1),
-    ]).setAttributes('class', 'fw-bold')
-
-    dropPovHomeFF < 0 ? rowPovHome.getCells(1).setAttributes('style', "color: "+redHexa+";") : rowPovHome.getCells(1).setAttributes('style', "color: "+greenHexa+";")
-    dropPovHomeMM < 0 ? rowPovHome.getCells(2).setAttributes('style', "color: "+redHexa+";") : rowPovHome.getCells(2).setAttributes('style', "color: "+greenHexa+";")
-    dropPovHomeAA < 0 ? rowPovHome.getCells(3).setAttributes('style', "color: "+redHexa+";") : rowPovHome.getCells(3).setAttributes('style', "color: "+greenHexa+";")
-
-    const rowPovAway = tabGame.setRow([
-        `POV AWAY ${PERIODE}`,
-        dropPovAwayAA.round(1),
-        dropPovAwayMM.round(1),
-        dropPovAwayFF.round(1),
-    ]).setAttributes('class', 'fw-bold')
-
-    dropPovAwayAA < 0 ? rowPovAway.getCells(1).setAttributes('style', "color: "+redHexa+";") : rowPovAway.getCells(1).setAttributes('style', "color: "+greenHexa+";")
-    dropPovAwayMM < 0 ? rowPovAway.getCells(2).setAttributes('style', "color: "+redHexa+";") : rowPovAway.getCells(2).setAttributes('style', "color: "+greenHexa+";")
-    dropPovAwayFF < 0 ? rowPovAway.getCells(3).setAttributes('style', "color: "+redHexa+";") : rowPovAway.getCells(3).setAttributes('style', "color: "+greenHexa+";")
-
-    /** */
-
+    const dropOddsOpenHome = Odds.drop(ODDS['openHome'], oddsMinPotHome)
+    const dropOddsOpenDraw = Odds.drop(ODDS['openDraw'], oddsMinPotDraw)
+    const dropOddsOpenAway = Odds.drop(ODDS['openAway'], oddsMinPotAway)
 
     tabGame.setRow([
-        `HOME FOR ${PERIODE}`,
-        (poiHomeFor['home'] * 100).round(1),
-        (poiHomeFor['draw'] * 100).round(1),
-        (poiHomeFor['away'] * 100).round(1)
+        `POV Potential home ${PERIODE}`,
+        (potHomeFor['home'] * 100).round(2),
+        (potHomeFor['draw'] * 100).round(2),
+        (potHomeFor['away'] * 100).round(2),
     ])
 
     tabGame.setRow([
-        `HOME AGAINST ${PERIODE}`,
-        (poiHomeAga['home'] * 100).round(1),
-        (poiHomeAga['draw'] * 100).round(1),
-        (poiHomeAga['away'] * 100).round(1)
+        `POV Potential away ${PERIODE}`,
+        (potHomeAga['home'] * 100).round(2),
+        (potHomeAga['draw'] * 100).round(2),
+        (potHomeAga['away'] * 100).round(2),
     ])
-
     
-
-    const rowEma = tabGame.setRow([
-        'TYPE',
-        'EMA',
-        '',
-        ''
-    ])
-
-    rowEma.getCells(1).setAttributes("colspan", "2")
-    rowEma.getCells(1).setAttributes("class", "text-center fw-bold")
-
     tabGame.setRow([
-        `FOR ${PERIODE}`,
-        (poiEmaFor['home'] * 100).round(1),
-        (poiEmaFor['draw'] * 100).round(1),
-        (poiEmaFor['away'] * 100).round(1)
-    ])
-    tabGame.setRow([
-        `AGAINST ${PERIODE}`,
-        (poiEmaAga['home'] * 100).round(1),
-        (poiEmaAga['draw'] * 100).round(1),
-        (poiEmaAga['away'] * 100).round(1)
-    ])
-
-
-    const rowNor = tabGame.setRow([
-        'TYPE',
-        'NORMAL AVG',
-        '',
-        ''
-    ])
-
-    rowNor.getCells(1).setAttributes("colspan", "2")
-    rowNor.getCells(1).setAttributes("class", "text-center fw-bold")
-
-    tabGame.setRow([
-        `FOR ${PERIODE}`,
-        (poiNorFor['home'] * 100).round(1),
-        (poiNorFor['draw'] * 100).round(1),
-        (poiNorFor['away'] * 100).round(1)
+        `Max Potential ${PERIODE}`,
+        (maxPotHome * 100).round(2),
+        (maxPotDraw * 100).round(2),
+        (maxPotAway * 100).round(2),
     ])
 
     tabGame.setRow([
-        `AGAINST ${PERIODE}`,
-        (poiNorAga['home'] * 100).round(1),
-        (poiNorAga['draw'] * 100).round(1),
-        (poiNorAga['away'] * 100).round(1)
+        `Odds max Potential ${PERIODE}`,
+        oddsMaxPotHome.round(2),
+        oddsMaxPotDraw.round(2),
+        oddsMaxPotAway.round(2),
     ])
 
-    tabGame.setRow([
-        'TYPE',
-        'DROP',
-        '',
-        ''
-    ])
-    .getCells('DROP')
-    .setAttributes("colspan", "2")
-    .setAttributes("class", "text-center fw-bold")
-
-    const rowDropFor = tabGame.setRow([
-        `FOR ${PERIODE}`,
-        dropForHome.round(2),
-        dropForDraw.round(2),
-        dropForAway.round(2),
+    const rowRise = tabGame.setRow([
+        `Rise Max -> Open ${PERIODE}`,
+        riseOddsOpenHome.round(2),
+        riseOddsOpenDraw.round(2),
+        riseOddsOpenAway.round(2),
     ]).setAttributes('class', 'fw-bold')
 
-    const rowDropAga = tabGame.setRow([
-        `AGAINST ${PERIODE}`,
-        dropAgaHome.round(2),
-        dropAgaDraw.round(2),
-        dropAgaAway.round(2),
+    riseOddsOpenHome < 0 ? rowRise.getCells(1).setAttributes('style', "color: "+redHexa+";") : rowRise.getCells(1).setAttributes('style', "color: "+greenHexa+";")
+    riseOddsOpenDraw < 0 ? rowRise.getCells(2).setAttributes('style', "color: "+redHexa+";") : rowRise.getCells(2).setAttributes('style', "color: "+greenHexa+";")
+    riseOddsOpenAway < 0 ? rowRise.getCells(3).setAttributes('style', "color: "+redHexa+";") : rowRise.getCells(3).setAttributes('style', "color: "+greenHexa+";")
+
+    const rowDrop = tabGame.setRow([
+        `Drop Max -> Open ${PERIODE}`,
+        dropOddsOpenHome.round(2),
+        dropOddsOpenDraw.round(2),
+        dropOddsOpenAway.round(2),
     ]).setAttributes('class', 'fw-bold')
 
-    dropForHome < 0 ? rowDropFor.getCells(1).setAttributes('style', "color: "+redHexa+";") : rowDropFor.getCells(1).setAttributes('style', "color: "+greenHexa+";")
-    dropForDraw < 0 ? rowDropFor.getCells(2).setAttributes('style', "color: "+redHexa+";") : rowDropFor.getCells(2).setAttributes('style', "color: "+greenHexa+";")
-    dropForAway < 0 ? rowDropFor.getCells(3).setAttributes('style', "color: "+redHexa+";") : rowDropFor.getCells(3).setAttributes('style', "color: "+greenHexa+";")
-
-    dropAgaHome > 0 ? rowDropAga.getCells(1).setAttributes('style', "color: "+redHexa+";") : rowDropAga.getCells(1).setAttributes('style', "color: "+greenHexa+";")
-    dropAgaDraw > 0 ? rowDropAga.getCells(2).setAttributes('style', "color: "+redHexa+";") : rowDropAga.getCells(2).setAttributes('style', "color: "+greenHexa+";")
-    dropAgaAway > 0 ? rowDropAga.getCells(3).setAttributes('style', "color: "+redHexa+";") : rowDropAga.getCells(3).setAttributes('style', "color: "+greenHexa+";")
-
-
-    tabGame.setRow([
-        'TYPE',
-        'DROP NORMAL / OPEN',
-        '',
-        ''
-    ])
-    .getCells('DROP NORMAL / OPEN')
-    .setAttributes("colspan", "2")
-    .setAttributes("class", "text-center fw-bold")
-
-    const rowDropOpenEmaFor = tabGame.setRow([
-        `FOR ${PERIODE}`,
-        dropOpenEmaForHome.round(2),
-        dropOpenEmaForDraw.round(2),
-        dropOpenEmaForAway.round(2),
-    ])
-
-    const rowDropOpenEmaAga = tabGame.setRow([
-        `AGAINST ${PERIODE}`,
-        dropOpenEmaAgaHome.round(2),
-        dropOpenEmaAgaDraw.round(2),
-        dropOpenEmaAgaAway.round(2),
-    ])
-
-    dropOpenEmaForHome < 0 ? rowDropOpenEmaFor.getCells(1).setAttributes('style', "color: "+redHexa+";") : rowDropOpenEmaFor.getCells(1).setAttributes('style', "color: "+greenHexa+";")
-    dropOpenEmaForDraw < 0 ? rowDropOpenEmaFor.getCells(2).setAttributes('style', "color: "+redHexa+";") : rowDropOpenEmaFor.getCells(2).setAttributes('style', "color: "+greenHexa+";")
-    dropOpenEmaForAway < 0 ? rowDropOpenEmaFor.getCells(3).setAttributes('style', "color: "+redHexa+";") : rowDropOpenEmaFor.getCells(3).setAttributes('style', "color: "+greenHexa+";")
-
-    dropOpenEmaAgaHome > 0 ? rowDropOpenEmaAga.getCells(1).setAttributes('style', "color: "+redHexa+";") : rowDropOpenEmaAga.getCells(1).setAttributes('style', "color: "+greenHexa+";")
-    dropOpenEmaAgaDraw > 0 ? rowDropOpenEmaAga.getCells(2).setAttributes('style', "color: "+redHexa+";") : rowDropOpenEmaAga.getCells(2).setAttributes('style', "color: "+greenHexa+";")
-    dropOpenEmaAgaAway > 0 ? rowDropOpenEmaAga.getCells(3).setAttributes('style', "color: "+redHexa+";") : rowDropOpenEmaAga.getCells(3).setAttributes('style', "color: "+greenHexa+";")
-
-
-    tabGame.setRow([
-       '',
-       '',
-       '',
-       ''
-    ])
-
+    dropOddsOpenHome < 0 ? rowDrop.getCells(1).setAttributes('style', "color: "+redHexa+";") : rowDrop.getCells(1).setAttributes('style', "color: "+greenHexa+";")
+    dropOddsOpenDraw < 0 ? rowDrop.getCells(2).setAttributes('style', "color: "+redHexa+";") : rowDrop.getCells(2).setAttributes('style', "color: "+greenHexa+";")
+    dropOddsOpenAway < 0 ? rowDrop.getCells(3).setAttributes('style', "color: "+redHexa+";") : rowDrop.getCells(3).setAttributes('style', "color: "+greenHexa+";")
 
     tabGame.setHead(['Type', 'Home', 'Draw', 'Away'])
     tabGame.setAttributes('class', 'table table-striped')
@@ -325,8 +179,10 @@ const setTabTeam = (id, node) => {
 
     for (const indexPeriode in PERIODE) {
         let laPeriode = PERIODE[indexPeriode]
+        let tabTmp = [...datasGame[id]['games']]
         if (typeof laPeriode !== 'function') {
-            let tabTmp = datasGame[id]['games'].reverse().slice(-laPeriode)
+            tabTmp = [...tabTmp].reverse().slice(-laPeriode)
+            console.log(tabTmp);
             let xgFor = []
             let xgAga = []
     
@@ -334,8 +190,7 @@ const setTabTeam = (id, node) => {
                 const gameStat = datasGame[id]['games'][i];
                 const game = gameStat['game']
                 const statistics = gameStat['statistics']
-    
-                console.log(statistics);
+
                 xgFor.push(statistics['xgFor'])
                 xgAga.push(statistics['xgAga'])
             }
