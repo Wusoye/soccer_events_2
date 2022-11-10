@@ -62,110 +62,110 @@ const setTabOdds = (game) => {
 const setTabGame = (data, node) => {
     const tabGame = new Table()
 
-    const PERIODE = 10
+    const PERIODE = [10, 3]
 
-    console.log(data['data']['emaHome']);
-    console.log(data['data']['emaHome'][PERIODE]);
-
-    const tabEmaHome = data['data']['emaHome'][PERIODE]
-    const tabEmaAway = data['data']['emaAway'][PERIODE]
+    const initTabGame = (periode) => {
+        const tabEmaHome = data['data']['emaHome'][periode]
+        const tabEmaAway = data['data']['emaAway'][periode]
+        
+        const emaHomeFor = tabEmaHome['emaFor']
+        const emaHomeAga = tabEmaHome['emaAga']
     
-    const emaHomeFor = tabEmaHome['emaFor']
-    const emaHomeAga = tabEmaHome['emaAga']
-
-    const norHomeFor = tabEmaHome['norFor']
-    const norHomeAga = tabEmaHome['norAga']
-
-    const emaAwayFor = tabEmaAway['emaFor']
-    const emaAwayAga = tabEmaAway['emaAga']
-
-    const norAwayFor = tabEmaAway['norFor']
-    const norAwayAga = tabEmaAway['norAga']
-
+        const norHomeFor = tabEmaHome['norFor']
+        const norHomeAga = tabEmaHome['norAga']
     
-    const potHomeFor = Poisson.getProba(emaHomeFor, 1/emaAwayAga, 25) // home => home
-    const potHomeAga = Poisson.getProba(1/emaHomeAga, emaAwayFor, 25)
-
-    const potAwayFor = Poisson.getProba(1/emaHomeAga, emaAwayFor, 25) // away => away
-    const potAwayAga = Poisson.getProba(emaHomeFor, 1/emaAwayAga, 25)
-
-    const tabPotHome = [potHomeFor['home'], potHomeAga['home']]
-    const tabPotDraw = [potHomeFor['draw'], potHomeAga['draw']]
-    const tabPotAway = [potHomeFor['away'], potHomeAga['away']]
-
-    const maxPotHome = tabPotHome.max()
-    const maxPotDraw = tabPotDraw.max()
-    const maxPotAway = tabPotAway.max()
-
-    const oddsMaxPotHome = Odds.proToOdds(maxPotHome)
-    const oddsMaxPotDraw = Odds.proToOdds(maxPotDraw)
-    const oddsMaxPotAway = Odds.proToOdds(maxPotAway)
-
-    const riseOddsOpenHome = Odds.drop(ODDS['openHome'], oddsMaxPotHome)
-    const riseOddsOpenDraw = Odds.drop(ODDS['openDraw'], oddsMaxPotDraw)
-    const riseOddsOpenAway = Odds.drop(ODDS['openAway'], oddsMaxPotAway)
-
-    const minPotHome = tabPotHome.min()
-    const minPotDraw = tabPotDraw.min()
-    const minPotAway = tabPotAway.min()
-
-    const oddsMinPotHome = Odds.proToOdds(minPotHome)
-    const oddsMinPotDraw = Odds.proToOdds(minPotDraw)
-    const oddsMinPotAway = Odds.proToOdds(minPotAway)
-
-    const dropOddsOpenHome = Odds.drop(ODDS['openHome'], oddsMinPotHome)
-    const dropOddsOpenDraw = Odds.drop(ODDS['openDraw'], oddsMinPotDraw)
-    const dropOddsOpenAway = Odds.drop(ODDS['openAway'], oddsMinPotAway)
-
-    tabGame.setRow([
-        `POV Potential home ${PERIODE}`,
-        (potHomeFor['home'] * 100).round(2),
-        (potHomeFor['draw'] * 100).round(2),
-        (potHomeFor['away'] * 100).round(2),
-    ])
-
-    tabGame.setRow([
-        `POV Potential away ${PERIODE}`,
-        (potHomeAga['home'] * 100).round(2),
-        (potHomeAga['draw'] * 100).round(2),
-        (potHomeAga['away'] * 100).round(2),
-    ])
+        const emaAwayFor = tabEmaAway['emaFor']
+        const emaAwayAga = tabEmaAway['emaAga']
     
-    tabGame.setRow([
-        `Max Potential ${PERIODE}`,
-        (maxPotHome * 100).round(2),
-        (maxPotDraw * 100).round(2),
-        (maxPotAway * 100).round(2),
-    ])
+        const norAwayFor = tabEmaAway['norFor']
+        const norAwayAga = tabEmaAway['norAga']
+        
+        const potHomeFor = Poisson.getProba(emaHomeFor, 1/emaAwayAga, 25) // home => home
+        const potHomeAga = Poisson.getProba(1/emaHomeAga, emaAwayFor, 25)
+    
+        const potAwayFor = Poisson.getProba(1/emaHomeAga, emaAwayFor, 25) // away => away
+        const potAwayAga = Poisson.getProba(emaHomeFor, 1/emaAwayAga, 25)
+    
+        const tabPotHome = [potHomeFor['home'], potHomeAga['home']]
+        const tabPotDraw = [potHomeFor['draw'], potHomeAga['draw']]
+        const tabPotAway = [potHomeFor['away'], potHomeAga['away']]
+    
+        const maxPotHome = tabPotHome.max()
+        const maxPotDraw = tabPotDraw.max()
+        const maxPotAway = tabPotAway.max()
+    
+        const oddsMaxPotHome = Odds.proToOdds(maxPotHome)
+        const oddsMaxPotDraw = Odds.proToOdds(maxPotDraw)
+        const oddsMaxPotAway = Odds.proToOdds(maxPotAway)
+    
+        const riseOddsOpenHome = Odds.drop(ODDS['openHome'], oddsMaxPotHome)
+        const riseOddsOpenDraw = Odds.drop(ODDS['openDraw'], oddsMaxPotDraw)
+        const riseOddsOpenAway = Odds.drop(ODDS['openAway'], oddsMaxPotAway)
+    
+        const minPotHome = tabPotHome.min()
+        const minPotDraw = tabPotDraw.min()
+        const minPotAway = tabPotAway.min()
+    
+        const oddsMinPotHome = Odds.proToOdds(minPotHome)
+        const oddsMinPotDraw = Odds.proToOdds(minPotDraw)
+        const oddsMinPotAway = Odds.proToOdds(minPotAway)
+    
+        const dropOddsOpenHome = Odds.drop(ODDS['openHome'], oddsMinPotHome)
+        const dropOddsOpenDraw = Odds.drop(ODDS['openDraw'], oddsMinPotDraw)
+        const dropOddsOpenAway = Odds.drop(ODDS['openAway'], oddsMinPotAway)
+    
+        tabGame.setRow([
+            `POV Potential home ${periode}`,
+            (potHomeFor['home'] * 100).round(2),
+            (potHomeFor['draw'] * 100).round(2),
+            (potHomeFor['away'] * 100).round(2),
+        ]).setAttributes('style', 'display: none;')
+    
+        tabGame.setRow([
+            `POV Potential away ${periode}`,
+            (potHomeAga['home'] * 100).round(2),
+            (potHomeAga['draw'] * 100).round(2),
+            (potHomeAga['away'] * 100).round(2),
+        ]).setAttributes('style', 'display: none;')
+        
+        tabGame.setRow([
+            `Max Potential ${periode}`,
+            (maxPotHome * 100).round(2),
+            (maxPotDraw * 100).round(2),
+            (maxPotAway * 100).round(2),
+        ]).setAttributes('style', 'display: none;')
+    
+        tabGame.setRow([
+            `Odds max Potential ${periode}`,
+            oddsMaxPotHome.round(2),
+            oddsMaxPotDraw.round(2),
+            oddsMaxPotAway.round(2),
+        ]).setAttributes('style', 'display: none;')
+    
+        const rowRise = tabGame.setRow([
+            `Rise ${periode}`,
+            riseOddsOpenHome.round(2),
+            riseOddsOpenDraw.round(2),
+            riseOddsOpenAway.round(2),
+        ]).setAttributes('class', 'fw-bold')
+    
+        riseOddsOpenHome < 0 ? rowRise.getCells(1).setAttributes('style', "color: "+redHexa+";") : rowRise.getCells(1).setAttributes('style', "color: "+greenHexa+";")
+        riseOddsOpenDraw < 0 ? rowRise.getCells(2).setAttributes('style', "color: "+redHexa+";") : rowRise.getCells(2).setAttributes('style', "color: "+greenHexa+";")
+        riseOddsOpenAway < 0 ? rowRise.getCells(3).setAttributes('style', "color: "+redHexa+";") : rowRise.getCells(3).setAttributes('style', "color: "+greenHexa+";")
+    
+        const rowDrop = tabGame.setRow([
+            `Drop ${periode}`,
+            dropOddsOpenHome.round(2),
+            dropOddsOpenDraw.round(2),
+            dropOddsOpenAway.round(2),
+        ]).setAttributes('class', 'fw-bold')
+    
+        dropOddsOpenHome < 0 ? rowDrop.getCells(1).setAttributes('style', "color: "+redHexa+";") : rowDrop.getCells(1).setAttributes('style', "color: "+greenHexa+";")
+        dropOddsOpenDraw < 0 ? rowDrop.getCells(2).setAttributes('style', "color: "+redHexa+";") : rowDrop.getCells(2).setAttributes('style', "color: "+greenHexa+";")
+        dropOddsOpenAway < 0 ? rowDrop.getCells(3).setAttributes('style', "color: "+redHexa+";") : rowDrop.getCells(3).setAttributes('style', "color: "+greenHexa+";")
+    }
 
-    tabGame.setRow([
-        `Odds max Potential ${PERIODE}`,
-        oddsMaxPotHome.round(2),
-        oddsMaxPotDraw.round(2),
-        oddsMaxPotAway.round(2),
-    ])
-
-    const rowRise = tabGame.setRow([
-        `Rise Max -> Open ${PERIODE}`,
-        riseOddsOpenHome.round(2),
-        riseOddsOpenDraw.round(2),
-        riseOddsOpenAway.round(2),
-    ]).setAttributes('class', 'fw-bold')
-
-    riseOddsOpenHome < 0 ? rowRise.getCells(1).setAttributes('style', "color: "+redHexa+";") : rowRise.getCells(1).setAttributes('style', "color: "+greenHexa+";")
-    riseOddsOpenDraw < 0 ? rowRise.getCells(2).setAttributes('style', "color: "+redHexa+";") : rowRise.getCells(2).setAttributes('style', "color: "+greenHexa+";")
-    riseOddsOpenAway < 0 ? rowRise.getCells(3).setAttributes('style', "color: "+redHexa+";") : rowRise.getCells(3).setAttributes('style', "color: "+greenHexa+";")
-
-    const rowDrop = tabGame.setRow([
-        `Drop Max -> Open ${PERIODE}`,
-        dropOddsOpenHome.round(2),
-        dropOddsOpenDraw.round(2),
-        dropOddsOpenAway.round(2),
-    ]).setAttributes('class', 'fw-bold')
-
-    dropOddsOpenHome < 0 ? rowDrop.getCells(1).setAttributes('style', "color: "+redHexa+";") : rowDrop.getCells(1).setAttributes('style', "color: "+greenHexa+";")
-    dropOddsOpenDraw < 0 ? rowDrop.getCells(2).setAttributes('style', "color: "+redHexa+";") : rowDrop.getCells(2).setAttributes('style', "color: "+greenHexa+";")
-    dropOddsOpenAway < 0 ? rowDrop.getCells(3).setAttributes('style', "color: "+redHexa+";") : rowDrop.getCells(3).setAttributes('style', "color: "+greenHexa+";")
+    PERIODE.forEach(initTabGame)
 
     tabGame.setHead(['Type', 'Home', 'Draw', 'Away'])
     tabGame.setAttributes('class', 'table table-striped')

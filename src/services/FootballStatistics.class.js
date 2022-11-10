@@ -47,6 +47,8 @@ class FootballStatistics {
             let URL = this.URL_API + 'countries/'
             const countries = await this.Fetch.get('GET', URL, {}, this.HEADERS_API_FOOTBALL_STATISTICS)
             let tabCountries = countries['data']['result']
+            const TOTAL = tabCountries.length
+            let cpt = 0
             for(const indexCountries in tabCountries) {
                 let countrie = tabCountries[indexCountries]
                 if (typeof countrie !== 'function') {
@@ -67,8 +69,12 @@ class FootballStatistics {
                             }
                         }
                     }
+                    cpt++
+                    console.log(cpt);
                 }
             }
+            
+            console.log(cpt + " / " + TOTAL);
             return 'ok'
         } catch (e) {
             console.log(e);
