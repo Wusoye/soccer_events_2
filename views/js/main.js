@@ -191,6 +191,7 @@ class Poisson {
                 if (local_i <= maxGoalView && visitor_i <= maxGoalView) {
                     let score = String(local_i + '-' + visitor_i)
                     matriceGoalDistrib.push({ score: score, prob: local_prob_score * visitor_prob_score })
+                    matriceGoalDistrib[score] = local_prob_score * visitor_prob_score
                 }
 
             }
@@ -204,6 +205,7 @@ class Poisson {
 function compareProbScore(a, b) {
     a = a['prob']
     b = b['prob']
+    //console.log(a);
     if (a > b) {
         return -1
     } if (a < b) {
@@ -243,11 +245,11 @@ class ToolsAverage {
     static ema(tab, periode) {
         try {
             if (tab.length <= periode) throw new Error('Periode trop grande par rapport aux données disponobles')
-            let tabEma = [...tab]
+            let tabEma = [...tab].reverse()
             if (typeof tabEma[0] === "number") {
                 let valueForEMA = tabEma.pop()
                 let tabForSM = tabEma.slice(-periode)
-                let average = tabForSM.average()
+                let average = tabForSM.average()          
                 let lambda =  2 / (periode + 1)
                 return (valueForEMA - average) * lambda + average
             } else if (typeof tabEma[0] === "object") {
