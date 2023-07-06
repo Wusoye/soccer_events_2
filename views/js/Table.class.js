@@ -21,6 +21,13 @@ class Cells {
             attributes[type] = value
         }
     }
+
+    _isNode () {
+        return (
+            typeof Node === "object" ? this.value instanceof Node : 
+            this.value && typeof this.value === "object" && typeof this.value.nodeType === "number" && typeof this.value.nodeName==="string"
+        );
+    }
 }
 
 class Row {
@@ -196,8 +203,12 @@ class Table {
                         let value = attributesCells[key]
                         th.setAttribute(key, value)
                     })
-                    let txt = document.createTextNode(cells.value)
-                    th.appendChild(txt)
+                    if (cells._isNode()) {
+                        th.appendChild(cells.value)
+                    } else {
+                        let txt = document.createTextNode(cells.value)
+                        th.appendChild(txt)
+                    }
                     trB.appendChild(th)
                 } else {
                     let td = document.createElement('td')
@@ -205,8 +216,12 @@ class Table {
                         let value = attributesCells[key]
                         td.setAttribute(key, value)
                     })
-                    let txt = document.createTextNode(cells.value)
-                    td.appendChild(txt)
+                    if (cells._isNode()) {
+                        td.appendChild(cells.value)
+                    } else {
+                        let txt = document.createTextNode(cells.value)
+                        td.appendChild(txt)
+                    }
                     trB.appendChild(td)
                 }
             })
